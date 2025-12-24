@@ -1,6 +1,6 @@
 {
   "name": "EduFlow - Premium Student Portal",
-  "description": "A comprehensive student management platform featuring AI-powered academic assistance, course tracking, performance analytics, and administrative management.",
+  "description": "A comprehensive student management platform for course tracking, performance analytics, and administrative management",
   "requestFramePermissions": [
     "camera",
     "microphone"
