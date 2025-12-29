@@ -1,10 +1,9 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Box, Flex, Text, Button, Input, IconButton, HStack,
   Table, Thead, Tbody, Tr, Th, Td, Checkbox, Badge, Spacer,
-  useToast, Menu, MenuButton, MenuList, MenuItem, Tag, Select,
-  useBreakpointValue, Stack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure
+  useToast, Tag, Select, useBreakpointValue, Stack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, useOutsideClick
 } from '@chakra-ui/react';
 import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -67,6 +66,9 @@ const Payments: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [showFilters, setShowFilters] = useState(false);
+  const filterRef = useRef<HTMLDivElement | null>(null);
+  useOutsideClick({ ref: filterRef, handler: () => setShowFilters(false) });
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -133,26 +135,26 @@ const Payments: React.FC = () => {
           <HStack spacing={3}>
             <Input placeholder="Search by name, email or code" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} bg="gray.50" size="sm" maxW={{ base: '160px', md: '360px' }} />
 
-            <Menu>
-              <MenuButton as={IconButton} aria-label="Filter" icon={<Filter size={16} />} size="sm" />
-              <MenuList>
-                <MenuItem>
-                  <Text fontWeight="bold">Status</Text>
-                </MenuItem>
-                <MenuItem onClick={() => { setStatusFilter('all'); setPage(1); }}>All</MenuItem>
-                <MenuItem onClick={() => { setStatusFilter('Succeeded'); setPage(1); }}>Succeeded</MenuItem>
-                <MenuItem onClick={() => { setStatusFilter('Pending'); setPage(1); }}>Pending</MenuItem>
-                <MenuItem onClick={() => { setStatusFilter('Declined'); setPage(1); }}>Declined</MenuItem>
-                <MenuItem divider />
-                <MenuItem>
-                  <Text fontWeight="bold">Method</Text>
-                </MenuItem>
-                <MenuItem onClick={() => { setMethodFilter('all'); setPage(1); }}>All</MenuItem>
-                <MenuItem onClick={() => { setMethodFilter('VISA'); setPage(1); }}>VISA</MenuItem>
-                <MenuItem onClick={() => { setMethodFilter('Mastercard'); setPage(1); }}>Mastercard</MenuItem>
-                <MenuItem onClick={() => { setMethodFilter('Bank transfer'); setPage(1); }}>Bank transfer</MenuItem>
-              </MenuList>
-            </Menu>
+            {/* Custom filter dropdown (avoids MenuButton export mismatch) */}
+            <Box position="relative" ref={filterRef}>
+              <IconButton aria-label="Filter" icon={<Filter size={16} />} size="sm" onClick={() => setShowFilters(s => !s)} />
+              {showFilters && (
+                <Box position="absolute" right={0} mt={2} w="220px" bg="white" border="1px" borderColor="gray.100" rounded="8px" shadow="sm" zIndex={60} p={2}>
+                  <Text fontWeight="bold" px={3} py={1}>Status</Text>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setStatusFilter('all'); setPage(1); setShowFilters(false); }}>All</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setStatusFilter('Succeeded'); setPage(1); setShowFilters(false); }}>Succeeded</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setStatusFilter('Pending'); setPage(1); setShowFilters(false); }}>Pending</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setStatusFilter('Declined'); setPage(1); setShowFilters(false); }}>Declined</Button>
+
+                  <Box my={2} borderTop="1px" borderColor="gray.50" />
+                  <Text fontWeight="bold" px={3} py={1}>Method</Text>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setMethodFilter('all'); setPage(1); setShowFilters(false); }}>All</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setMethodFilter('VISA'); setPage(1); setShowFilters(false); }}>VISA</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setMethodFilter('Mastercard'); setPage(1); setShowFilters(false); }}>Mastercard</Button>
+                  <Button variant="ghost" justifyContent="flex-start" w="full" onClick={() => { setMethodFilter('Bank transfer'); setPage(1); setShowFilters(false); }}>Bank transfer</Button>
+                </Box>
+              )}
+            </Box>
 
             <IconButton aria-label="Export" icon={<FileText size={16} />} size="sm" onClick={downloadCSV} />
           </HStack>
