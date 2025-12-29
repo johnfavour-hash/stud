@@ -5,7 +5,7 @@ import {
   Table, Checkbox, Badge, Spacer,
   useToast, Tag, Select, useBreakpointValue, Stack, useOutsideClick
 } from '@chakra-ui/react';
-import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X, BookOpen, CreditCard } from 'lucide-react';
 
 type Payment = {
   id: string;
@@ -71,6 +71,42 @@ const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payme
           <Button colorScheme="blue" onClick={() => { toast({ title: 'Receipt exported', status: 'success' }); }}>Export receipt</Button>
         </Flex>
       </Box>
+
+      {/* Make New Payment Modal (embedded here so it's close in file) */}
+      <MakePaymentModal isOpen={makeModalOpen} onClose={() => setMakeModalOpen(false)} />
+    </Box>
+  );
+};
+
+const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  const toast = useToast();
+  if (!isOpen) return null;
+  const handleChoose = (label: string) => {
+    toast({ title: `${label} selected`, status: 'success' });
+    onClose();
+  };
+
+  return (
+    <Box position="fixed" inset={0} zIndex={70} display="flex" alignItems="center" justifyContent="center">
+      <Box position="absolute" inset={0} bg="blackAlpha.700" onClick={onClose} />
+      <Box bg="white" p={6} rounded="8px" shadow="lg" zIndex={80} minW={{ base: '90%', md: '420px' }}>
+        <Flex justify="space-between" align="center" mb={4}>
+          <Text fontWeight="bold" color="blue.600">Make New Payment</Text>
+          <IconButton aria-label="Close" icon={<X size={16} />} variant="ghost" onClick={onClose} />
+        </Flex>
+
+        <Stack spacing={3}>
+          <Button leftIcon={<BookOpen size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Pay for Course Registration')}>
+            Pay for Course Registration
+          </Button>
+          <Button leftIcon={<FileText size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Pay for Transcript')}>
+            Pay for Transcript
+          </Button>
+          <Button leftIcon={<CreditCard size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Make Other Payments')}>
+            Make Other Payments
+          </Button>
+        </Stack>
+      </Box>
     </Box>
   );
 };
@@ -92,6 +128,9 @@ const Payments: React.FC = () => {
   // Modal (local state; using custom modal implementation)
   const [modalOpen, setModalOpen] = useState(false);
   const [activePayment, setActivePayment] = useState<Payment | null>(null);
+
+  // Make New Payment modal
+  const [makeModalOpen, setMakeModalOpen] = useState(false);
 
   const showTable = useBreakpointValue({ base: false, md: true });
 
@@ -140,7 +179,7 @@ const Payments: React.FC = () => {
       <Flex align="center" mb={6} gap={4}>
         <Text fontSize={{ base: 'lg', lg: 'xl' }} fontWeight="bold">Payments</Text>
         <Spacer />
-        <Button leftIcon={<Plus size={14} />} colorScheme="blue">Make New Payment</Button>
+        <Button leftIcon={<Plus size={14} />} colorScheme="blue" onClick={() => setMakeModalOpen(true)}>Make New Payment</Button>
       </Flex>
 
       <Box bg="white" p={{ base: 3, lg: 6 }} rounded="16px" border="1px" borderColor="gray.100">
