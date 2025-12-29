@@ -2,7 +2,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Box, Flex, Text, Button, Input, IconButton, HStack, Image,
-  Table, Thead, Tbody, Tr, Th, Td, Checkbox, Badge, Spacer,
+  Table, Checkbox, Badge, Spacer,
   useToast, Tag, Select, useBreakpointValue, Stack, useOutsideClick
 } from '@chakra-ui/react';
 import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -179,41 +179,41 @@ const Payments: React.FC = () => {
         {showTable ? (
           <Box overflowX="auto">
             <Table variant="simple" size="sm">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th><Checkbox isChecked={paged.length > 0 && Object.keys(selected).length === paged.length} onChange={(e) => toggleSelectAll(e.target.checked)} /></Th>
-                  <Th>Transaction Id</Th>
-                  <Th>Payment from</Th>
-                  <Th>Payment for</Th>
-                  <Th>Amount</Th>
-                  <Th>Payment method</Th>
-                  <Th>Date</Th>
-                  <Th>Status</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
+              <thead style={{ backgroundColor: '#F8FAFC' }}>
+                <tr>
+                  <th style={{ padding: '10px' }}><Checkbox isChecked={paged.length > 0 && Object.keys(selected).length === paged.length} onChange={(e) => toggleSelectAll(e.target.checked)} /></th>
+                  <th style={{ padding: '10px' }}>Transaction Id</th>
+                  <th style={{ padding: '10px' }}>Payment from</th>
+                  <th style={{ padding: '10px' }}>Payment for</th>
+                  <th style={{ padding: '10px' }}>Amount</th>
+                  <th style={{ padding: '10px' }}>Payment method</th>
+                  <th style={{ padding: '10px' }}>Date</th>
+                  <th style={{ padding: '10px' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
                 {paged.map(p => (
-                  <Tr key={p.id} _hover={{ bg: 'gray.50' }} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }} role="button" tabIndex={0}>
-                    <Td><Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} /></Td>
-                    <Td fontSize="sm" whiteSpace="nowrap">{p.transactionId}</Td>
-                    <Td>{p.from}</Td>
-                    <Td>{p.paymentFor}</Td>
-                    <Td>{p.amount}</Td>
-                    <Td>
+                  <tr key={p.id} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }} role="button" tabIndex={0}>
+                    <td style={{ padding: '12px' }}><Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} /></td>
+                    <td style={{ padding: '12px', fontSize: 14, whiteSpace: 'nowrap' }}>{p.transactionId}</td>
+                    <td style={{ padding: '12px' }}>{p.from}</td>
+                    <td style={{ padding: '12px' }}>{p.paymentFor}</td>
+                    <td style={{ padding: '12px' }}>{p.amount}</td>
+                    <td style={{ padding: '12px' }}>
                       <HStack spacing={2} align="center">
                         <Image src={getMethodIcon(p.method)} alt={p.method} boxSize="18px" objectFit="contain" />
                         <Tag size="sm" variant="subtle">{p.method}</Tag>
                       </HStack>
-                    </Td>
-                    <Td>{p.date}</Td>
-                    <Td>
+                    </td>
+                    <td style={{ padding: '12px' }}>{p.date}</td>
+                    <td style={{ padding: '12px' }}>
                       {p.status === 'Succeeded' && <Badge colorScheme="green">Succeeded</Badge>}
                       {p.status === 'Pending' && <Badge colorScheme="yellow">Pending</Badge>}
                       {p.status === 'Declined' && <Badge colorScheme="red">Declined</Badge>}
-                    </Td>
-                  </Tr>
+                    </td>
+                  </tr>
                 ))}
-              </Tbody>
+              </tbody>
             </Table>
           </Box>
         ) : (
