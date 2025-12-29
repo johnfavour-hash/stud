@@ -1,7 +1,7 @@
 
 import React, { useMemo, useRef, useState } from 'react';
 import {
-  Box, Flex, Text, Button, Input, IconButton, HStack,
+  Box, Flex, Text, Button, Input, IconButton, HStack, Image,
   Table, Thead, Tbody, Tr, Th, Td, Checkbox, Badge, Spacer,
   useToast, Tag, Select, useBreakpointValue, Stack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, useOutsideClick
 } from '@chakra-ui/react';
@@ -31,6 +31,20 @@ const createSample = (n = 20) => Array.from({ length: n }).map((_, i) => ({
 
 const sampleData = createSample(37);
 
+// Map payment method string -> asset image (defaults chosen by request)
+const getMethodIcon = (method: string) => {
+  // Mapping: 1) dbe6fcea... -> VISA
+  //          2) 10b571fd... -> Mastercard
+  //          3) 3b543946... -> Bank transfer
+  if (/VISA/i.test(method)) return '/assets/dbe6fcea94b57473b3ac92ebfd373581c53ffdf8 (2).png';
+  if (/Mastercard/i.test(method) || /Mastercard/i.test(method)) return '/assets/10b571fd0d881b731c970262e0cc1b5bfad7c107 (1).png';
+  if (/Bank/i.test(method) || /transfer/i.test(method)) return '/assets/3b543946b234ab5b1742eccf85f0c75277b92ddd (1).png';
+  // Fallback: try matching common tokens
+  if (/master/i.test(method)) return '/assets/10b571fd0d881b731c970262e0cc1b5bfad7c107 (1).png';
+  if (/visa/i.test(method)) return '/assets/dbe6fcea94b57473b3ac92ebfd373581c53ffdf8 (2).png';
+  return '/assets/3b543946b234ab5b1742eccf85f0c75277b92ddd (1).png';
+};
+
 const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payment?: Payment | null }> = ({ isOpen, onClose, payment }) => {
   const toast = useToast();
   if (!payment) return null;
@@ -44,7 +58,7 @@ const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payme
             <Text><strong>From:</strong> {payment.from}</Text>
             <Text><strong>Payment for:</strong> {payment.paymentFor}</Text>
             <Text><strong>Amount:</strong> {payment.amount}</Text>
-            <Text><strong>Method:</strong> {payment.method}</Text>
+            <Text><strong>Method:</strong> <HStack display="inline-flex" spacing={2} align="center"><Image src={getMethodIcon(payment.method)} alt={payment.method} boxSize="16px" objectFit="contain" /><span>{payment.method}</span></HStack></Text>
             <Text><strong>Date:</strong> {payment.date}</Text>
             <Text><strong>Status:</strong> {payment.status}</Text>
           </Stack>
@@ -184,7 +198,12 @@ const Payments: React.FC = () => {
                     <Td>{p.from}</Td>
                     <Td>{p.paymentFor}</Td>
                     <Td>{p.amount}</Td>
-                    <Td><Tag size="sm" variant="subtle">{p.method}</Tag></Td>
+                    <Td>
+                      <HStack spacing={2} align="center">
+                        <Image src={getMethodIcon(p.method)} alt={p.method} boxSize="18px" objectFit="contain" />
+                        <Tag size="sm" variant="subtle">{p.method}</Tag>
+                      </HStack>
+                    </Td>
                     <Td>{p.date}</Td>
                     <Td>
                       {p.status === 'Succeeded' && <Badge colorScheme="green">Succeeded</Badge>}
@@ -209,7 +228,12 @@ const Payments: React.FC = () => {
                   </Box>
                   <Box textAlign="right">
                     <Text fontWeight="bold">{p.amount}</Text>
-                    <Text fontSize="xs"><Tag size="xs">{p.method}</Tag></Text>
+                    <Text fontSize="xs">
+                      <HStack spacing={2} align="center">
+                        <Image src={getMethodIcon(p.method)} alt={p.method} boxSize="14px" objectFit="contain" />
+                        <Tag size="xs">{p.method}</Tag>
+                      </HStack>
+                    </Text>
                     <Box mt={1}>{p.status === 'Succeeded' ? <Badge colorScheme="green">Succeeded</Badge> : (p.status === 'Pending' ? <Badge colorScheme="yellow">Pending</Badge> : <Badge colorScheme="red">Declined</Badge>)}</Box>
                   </Box>
                 </Flex>
