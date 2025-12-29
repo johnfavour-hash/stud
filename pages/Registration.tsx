@@ -192,8 +192,17 @@ const CoursesRegView = () => (
   </div>
 );
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 const Registration: React.FC = () => {
-  const [activeSubTab, setActiveSubTab] = useState<'courses' | 'transcript' | 'other'>('courses');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeSubTab = (() => {
+    if (location.pathname.includes('/registration/transcript')) return 'transcript';
+    if (location.pathname.includes('/registration/other')) return 'other';
+    return 'courses';
+  })();
 
   return (
     <div className="p-4 lg:p-8 max-w-[1600px] mx-auto space-y-8 lg:space-y-10">
@@ -202,7 +211,7 @@ const Registration: React.FC = () => {
           {(['courses', 'transcript', 'other'] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveSubTab(tab)}
+              onClick={() => navigate(`/registration/${tab}`)}
               className={`px-8 lg:px-12 py-3 rounded-2xl text-[12px] lg:text-sm font-bold transition-all duration-300 ${
                 activeSubTab === tab 
                   ? 'bg-[#3b82f6] text-white shadow-md' 

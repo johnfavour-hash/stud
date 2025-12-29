@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Box, Flex, Text, Image, Button, Input, 
   IconButton, VStack, HStack, useBreakpointValue
@@ -16,6 +16,9 @@ import {
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import Registration from './pages/Registration';
+import Schedule from './pages/Schedule';
+import Payments from './pages/Payments';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { NavigationItem } from './types';
 
 const Logo = () => (
@@ -76,41 +79,22 @@ const SidebarItem = ({
 );
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<NavigationItem>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '') as NavigationItem;
-      const validTabs: NavigationItem[] = ['dashboard', 'courses', 'registration', 'schedule', 'payments', 'settings'];
-      if (validTabs.includes(hash)) {
-        setActiveTab(hash);
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const navigateTo = (tab: NavigationItem) => {
-    window.location.hash = tab;
-    setIsMobileMenuOpen(false);
+  const getTabFromPath = (pathname: string): NavigationItem => {
+    if (pathname.startsWith('/courses')) return 'courses';
+    if (pathname.startsWith('/registration')) return 'registration';
+    if (pathname.startsWith('/payments')) return 'payments';
+    if (pathname.startsWith('/schedule')) return 'schedule';
+    if (pathname.startsWith('/settings')) return 'settings';
+    return 'dashboard';
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
-      case 'courses': return <Courses />;
-      case 'registration': return <Registration />;
-      default: return (
-        <Flex direction="column" align="center" justify="center" h="full" color="gray.400" p={8}>
-          <Settings size={48} className="mb-4 animate-spin-slow" />
-          <Text fontSize="xl" fontWeight="semibold">Under Maintenance</Text>
-          <Text fontSize="sm" textAlign="center">The {activeTab} section is being updated.</Text>
-        </Flex>
-      );
-    }
-  };
+  const activeTab = getTabFromPath(location.pathname);
+
 
   return (
     <Flex h="100vh" bg="#fcfdfe" overflow="hidden">
@@ -153,12 +137,12 @@ const App: React.FC = () => {
           '&::-webkit-scrollbar-track': { background: 'transparent' },
           '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '2px' },
         }}>
-          <SidebarItem iconSrc="/assets/House (1).png" label="Dashboard" active={activeTab === 'dashboard'} onClick={() => navigateTo('dashboard')} />
-          <SidebarItem iconSrc="/assets/BookOpen (1).png" label="Courses" active={activeTab === 'courses'} onClick={() => navigateTo('courses')} />
-          <SidebarItem iconSrc="/assets/Books (1).png" label="Registration" active={activeTab === 'registration'} onClick={() => navigateTo('registration')} />
-          <SidebarItem iconSrc="/assets/CalendarDots (1).png" label="Schedule" active={activeTab === 'schedule'} onClick={() => navigateTo('schedule')} />
-          <SidebarItem iconSrc="/assets/Money (1).png" label="Payments" active={activeTab === 'payments'} onClick={() => navigateTo('payments')} />
-          <SidebarItem iconSrc="/assets/305ae6c7f315bb219eb3b785a763838d55d71e73 (1).png" label="Settings" active={activeTab === 'settings'} onClick={() => navigateTo('settings')} />
+          <SidebarItem iconSrc="/assets/House (1).png" label="Dashboard" active={activeTab === 'dashboard'} onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} />
+          <SidebarItem iconSrc="/assets/BookOpen (1).png" label="Courses" active={activeTab === 'courses'} onClick={() => { navigate('/courses/results'); setIsMobileMenuOpen(false); }} />
+          <SidebarItem iconSrc="/assets/Books (1).png" label="Registration" active={activeTab === 'registration'} onClick={() => { navigate('/registration'); setIsMobileMenuOpen(false); }} />
+          <SidebarItem iconSrc="/assets/CalendarDots (1).png" label="Schedule" active={activeTab === 'schedule'} onClick={() => { navigate('/schedule'); setIsMobileMenuOpen(false); }} />
+          <SidebarItem iconSrc="/assets/Money (1).png" label="Payments" active={activeTab === 'payments'} onClick={() => { navigate('/payments'); setIsMobileMenuOpen(false); }} />
+          <SidebarItem iconSrc="/assets/305ae6c7f315bb219eb3b785a763838d55d71e73 (1).png" label="Settings" active={activeTab === 'settings'} onClick={() => { navigate('/settings'); setIsMobileMenuOpen(false); }} />
         </Box>
 
         <Box p={8} borderTop="1px" borderColor="gray.50" fontSize="10px" color="gray.400" fontWeight="bold" textTransform="uppercase" letterSpacing="widest">
@@ -226,7 +210,17 @@ const App: React.FC = () => {
           '&::-webkit-scrollbar-track': { background: 'transparent' },
           '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '2px' },
         }}>
-          {renderContent()}
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/courses" element={<Navigate to="/courses/results" replace />} />
+            <Route path="/courses/*" element={<Courses />} />
+            <Route path="/registration" element={<Navigate to="/registration/courses" replace />} />
+            <Route path="/registration/*" element={<Registration />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="*" element={<Dashboard />} />
+          </Routes>
         </Box>
       </Flex>
     </Flex>

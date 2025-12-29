@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { 
-  Box, Flex, Grid, GridItem, Text, Heading, Button, IconButton, Input, NativeSelect, 
+  Box, Flex, Grid, GridItem, Text, Heading, Button, IconButton, Input, Image, NativeSelect, 
   Table, Checkbox, Badge, 
   Stack, HStack, VStack, 
   useBreakpointValue
@@ -14,7 +15,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { Search, Plus, Paperclip, ChevronLeft, Send, ChevronDown } from 'lucide-react';
+import { Search, Plus, ChevronLeft, Send, ChevronDown } from 'lucide-react';
 
 const TableCheckbox = () => (
   <Checkbox.Root colorPalette="blue" size="sm">
@@ -444,58 +445,47 @@ const ApplicationDetail = ({ onBack }: { onBack: () => void }) => (
     <Box p={{ base: 4, lg: 8 }} bg="white" borderTop="1px" borderColor="gray.50" flexShrink={0}>
       <Box position="relative">
         <Input 
-          placeholder="Type message..." 
+          placeholder="Type text here to follow up on complaint" 
           bg="slate.50" 
           borderColor="gray.200" 
           rounded="2xl" 
           py={{ base: 4, lg: 5 }} 
           pl={{ base: 5, lg: 8 }} 
-          pr={28} 
+          pr={{ base: 12, lg: 14 }} 
           fontSize={{ base: "13px", lg: "sm" }} 
           fontWeight="medium" 
           color="slate.800" 
           _focus={{ outline: "none", borderColor: "blue.300" }}
           h="auto"
         />
-        <Box position="absolute" right={2} top="50%" transform="translateY(-50%)" display="flex" alignItems="center">
-          <HStack spacing={2}>
-            <IconButton 
-              aria-label="Attach" 
-              icon={<Paperclip size={20} />} 
-              variant="ghost" 
-              color="gray.400" 
-              _hover={{ color: "blue.500" }} 
-              size="sm"
-              minW="auto"
-              p={1}
-            />
-            <IconButton 
-              aria-label="Send" 
-              icon={<Send size={18} />} 
-              bg="blue.500" 
-              color="white" 
-              rounded="xl" 
-              _hover={{ bg: "blue.600" }} 
-              size="sm"
-              p={2}
-              h="auto"
-            />
-          </HStack>
+        <Box position="absolute" right={4} top="50%" transform="translateY(-50%)" display="flex" alignItems="center">
+          <IconButton
+            aria-label="Send"
+            icon={<Send size={16} />}
+            variant="ghost"
+            bg="blue.500"
+            color="white"
+            _hover={{ bg: "blue.600" }}
+            size="sm"
+            p={2}
+            mr={2}
+          />
+          <Image src="/assets/Paperclip.png" alt="Attach" boxSize="18px" cursor="pointer" />
         </Box>
       </Box>
     </Box>
   </Box>
 );
 
-const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, onSelect: () => void }) => {
+const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, onSelect: (id: string) => void }) => {
   const applications = [
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '30m ago', status: 'In Progress', color: 'blue' },
-    { code: 'CPT011', subject: 'Result Remark Request', desc: 'I believe my result for MTH110.1 is not my score...', update: '3d ago', status: 'In Progress', color: 'blue' },
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '7d ago', status: 'Pending Review', color: 'pink' },
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1w ago', status: 'Completed', color: 'green' },
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '2mon ago', status: 'Completed', color: 'green' },
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Pending Review', color: 'pink' },
-    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Completed', color: 'green' },
+    { id: '1', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '30m ago', status: 'In Progress', color: 'blue' },
+    { id: '2', code: 'CPT011', subject: 'Result Remark Request', desc: 'I believe my result for MTH110.1 is not my score...', update: '3d ago', status: 'In Progress', color: 'blue' },
+    { id: '3', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '7d ago', status: 'Pending Review', color: 'pink' },
+    { id: '4', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1w ago', status: 'Completed', color: 'green' },
+    { id: '5', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '2mon ago', status: 'Completed', color: 'green' },
+    { id: '6', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Pending Review', color: 'pink' },
+    { id: '7', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Completed', color: 'green' },
   ];
 
   return (
@@ -576,8 +566,8 @@ const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, on
             <Table.Body>
               {applications.map((app, idx) => (
                 <Table.Row 
-                  key={idx} 
-                  onClick={onSelect} 
+                  key={app.id} 
+                  onClick={() => onSelect(app.id)} 
                   cursor="pointer" 
                   _hover={{ bg: "slate.50" }} 
                   transition="background 0.2s"
@@ -626,13 +616,14 @@ const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, on
 };
 
 const Courses: React.FC = () => {
-  const [activeSubTab, setActiveSubTab] = useState<'courses' | 'results' | 'applications'>('results');
-  const [viewingDetail, setViewingDetail] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleApplicationsClick = () => {
-    setActiveSubTab('applications');
-    setViewingDetail(false);
-  };
+  const activeSubTab = (() => {
+    if (location.pathname.includes('/courses/courses')) return 'courses';
+    if (location.pathname.includes('/courses/applications')) return 'applications';
+    return 'results';
+  })();
 
   return (
     <Box p={{ base: 4, lg: 8 }} maxW="1600px" mx="auto">
@@ -651,10 +642,7 @@ const Courses: React.FC = () => {
             {(['courses', 'results', 'applications'] as const).map((tab) => (
               <Button
                 key={tab}
-                onClick={() => {
-                  setActiveSubTab(tab);
-                  setViewingDetail(false);
-                }}
+                onClick={() => navigate(`/courses/${tab}`)}
                 variant="ghost"
                 px={{ base: 6, sm: 12 }}
                 py={6}
@@ -678,18 +666,14 @@ const Courses: React.FC = () => {
 
         {/* Conditional Rendering based on Sub-Tab and View State */}
         <Box minH="600px" w="full">
-          {activeSubTab === 'courses' && <CoursesTab />}
-          {activeSubTab === 'results' && <ResultsTab />}
-          {activeSubTab === 'applications' && (
-            viewingDetail ? (
-              <ApplicationDetail onBack={() => setViewingDetail(false)} />
-            ) : (
-              <ApplicationsListView 
-                onLogNew={() => setViewingDetail(true)} 
-                onSelect={() => setViewingDetail(true)} 
-              />
-            )
-          )}
+          <Routes>
+            <Route path="courses" element={<CoursesTab />} />
+            <Route path="results" element={<ResultsTab />} />
+            <Route path="applications" element={<ApplicationsListView onLogNew={() => navigate('applications/new')} onSelect={(id: string) => navigate(`applications/${id}`)} />} />
+            <Route path="applications/new" element={<ApplicationDetail onBack={() => navigate('/courses/applications')} />} />
+            <Route path="applications/:id" element={<ApplicationDetail onBack={() => navigate('/courses/applications')} />} />
+            <Route path="*" element={<ResultsTab />} />
+          </Routes>
         </Box>
       </VStack>
     </Box>
