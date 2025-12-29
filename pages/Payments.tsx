@@ -1,11 +1,12 @@
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box, Flex, Text, Button, Input, IconButton, HStack, Image,
-  Table, Checkbox, Badge, Spacer,
-  useToast, Tag, Select, useBreakpointValue, Stack, useOutsideClick
+  Badge, Spacer,
+  useBreakpointValue, Stack
 } from '@chakra-ui/react';
 import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X, BookOpen, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 type Payment = {
   id: string;
@@ -45,8 +46,48 @@ const getMethodIcon = (method: string) => {
   return '/assets/3b543946b234ab5b1742eccf85f0c75277b92ddd (1).png';
 };
 
+// Small local hook to detect clicks outside a ref (avoid relying on Chakra's useOutsideClick)
+function useLocalOutsideClick(ref: React.RefObject<HTMLElement>, handler: () => void) {
+  useEffect(() => {
+    const listener = (e: MouseEvent | TouchEvent) => {
+      const el = ref.current;
+      if (!el) return;
+      const target = e.target as Node;
+      if (el.contains(target)) return;
+      handler();
+    };
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
+    return () => {
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
+    };
+  }, [ref, handler]);
+}
+
+// Lightweight toast helper for demo (avoids Chakra's useToast export)
+function showToast({ title, status = 'info' }: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) {
+  if (typeof document === 'undefined') { alert(title); return; }
+  const el = document.createElement('div');
+  el.textContent = title;
+  el.setAttribute('role', 'status');
+  Object.assign(el.style, {
+    position: 'fixed',
+    right: '16px',
+    bottom: '16px',
+    backgroundColor: status === 'success' ? '#16a34a' : status === 'warning' ? '#f59e0b' : status === 'error' ? '#ef4444' : '#111827',
+    color: '#fff',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    zIndex: '9999',
+    fontSize: '13px',
+  } as React.CSSProperties);
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+} 
+
 const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payment?: Payment | null }> = ({ isOpen, onClose, payment }) => {
-  const toast = useToast();
+  const toast = (opts: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) => showToast(opts);
   if (!payment || !isOpen) return null;
   return (
     <Box position="fixed" inset={0} zIndex={70} display="flex" alignItems="center" justifyContent="center">
@@ -72,14 +113,13 @@ const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payme
         </Flex>
       </Box>
 
-      {/* Make New Payment Modal (embedded here so it's close in file) */}
-      <MakePaymentModal isOpen={makeModalOpen} onClose={() => setMakeModalOpen(false)} />
+
     </Box>
   );
 };
 
 const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-  const toast = useToast();
+  const toast = (opts: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) => showToast(opts);
   const navigate = useNavigate();
   if (!isOpen) return null;
 
@@ -115,14 +155,14 @@ const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
 };
 
 const Payments: React.FC = () => {
-  const toast = useToast();
+  const toast = (opts: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) => showToast(opts);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [showFilters, setShowFilters] = useState(false);
   const filterRef = useRef<HTMLDivElement | null>(null);
-  useOutsideClick({ ref: filterRef, handler: () => setShowFilters(false) });
+  useLocalOutsideClick(filterRef as React.RefObject<HTMLElement>, () => setShowFilters(false));
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -220,10 +260,10 @@ const Payments: React.FC = () => {
         {/* Table for md+ */}
         {showTable ? (
           <Box overflowX="auto">
-            <Table variant="simple" size="sm">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ backgroundColor: '#F8FAFC' }}>
                 <tr>
-                  <th style={{ padding: '10px' }}><Checkbox isChecked={paged.length > 0 && Object.keys(selected).length === paged.length} onChange={(e) => toggleSelectAll(e.target.checked)} /></th>
+                  <th style={{ padding: '10px' }}><input type="checkbox" checked={paged.length > 0 && Object.keys(selected).length === paged.length} onChange={(e) => toggleSelectAll((e.target as HTMLInputElement).checked)} /></th>
                   <th style={{ padding: '10px' }}>Transaction Id</th>
                   <th style={{ padding: '10px' }}>Payment from</th>
                   <th style={{ padding: '10px' }}>Payment for</th>
@@ -236,7 +276,7 @@ const Payments: React.FC = () => {
               <tbody>
                 {paged.map(p => (
                   <tr key={p.id} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }} role="button" tabIndex={0}>
-                    <td style={{ padding: '12px' }}><Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} /></td>
+                    <td style={{ padding: '12px' }}><input type="checkbox" checked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: (e.target as HTMLInputElement).checked }))} /></td>
                     <td style={{ padding: '12px', fontSize: 14, whiteSpace: 'nowrap' }}>{p.transactionId}</td>
                     <td style={{ padding: '12px' }}>{p.from}</td>
                     <td style={{ padding: '12px' }}>{p.paymentFor}</td>
@@ -244,7 +284,7 @@ const Payments: React.FC = () => {
                     <td style={{ padding: '12px' }}>
                       <HStack spacing={2} align="center">
                         <Image src={getMethodIcon(p.method)} alt={p.method} boxSize="18px" objectFit="contain" />
-                        <Tag size="sm" variant="subtle">{p.method}</Tag>
+                        <span style={{ fontSize: 12, background: '#F3F4F6', padding: '4px 8px', borderRadius: 8 }}>{p.method}</span>
                       </HStack>
                     </td>
                     <td style={{ padding: '12px' }}>{p.date}</td>
@@ -256,7 +296,7 @@ const Payments: React.FC = () => {
                   </tr>
                 ))}
               </tbody>
-            </Table>
+            </table>
           </Box>
         ) : (
           /* Mobile card list */
@@ -264,7 +304,7 @@ const Payments: React.FC = () => {
             {paged.map(p => (
               <Box key={p.id} p={3} rounded="12px" border="1px" borderColor="gray.50" _hover={{ bg: 'gray.50' }} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }}>
                 <Flex align="center">
-                  <Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} mr={3} />
+                  <input type="checkbox" checked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: (e.target as HTMLInputElement).checked }))} style={{ marginRight: 12 }} />
                   <Box flex={1}>
                     <Text fontSize="sm" fontWeight="bold">{p.paymentFor}</Text>
                     <Text fontSize="xs" color="gray.500">{p.transactionId} • {p.from}</Text>
@@ -274,7 +314,7 @@ const Payments: React.FC = () => {
                     <Text fontSize="xs">
                       <HStack spacing={2} align="center">
                         <Image src={getMethodIcon(p.method)} alt={p.method} boxSize="14px" objectFit="contain" />
-                        <Tag size="xs">{p.method}</Tag>
+                        <span style={{ fontSize: 11, background: '#F3F4F6', padding: '2px 6px', borderRadius: 6 }}>{p.method}</span>
                       </HStack>
                     </Text>
                     <Box mt={1}>{p.status === 'Succeeded' ? <Badge colorScheme="green">Succeeded</Badge> : (p.status === 'Pending' ? <Badge colorScheme="yellow">Pending</Badge> : <Badge colorScheme="red">Declined</Badge>)}</Box>
@@ -297,16 +337,17 @@ const Payments: React.FC = () => {
           <HStack spacing={2}>
             <IconButton aria-label="Prev" size="sm" icon={<ChevronLeft size={14} />} onClick={() => setPage(p => Math.max(1, p - 1))} isDisabled={page === 1} />
             <IconButton aria-label="Next" size="sm" icon={<ChevronRight size={14} />} onClick={() => setPage(p => Math.min(pages, p + 1))} isDisabled={page === pages} />
-            <Select size="sm" maxW="100px" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+            <select style={{ fontSize: 13, padding: '6px 8px', maxWidth: '100px' }} value={perPage} onChange={(e) => { setPerPage(Number((e.target as HTMLSelectElement).value)); setPage(1); }}>
               <option value={5}>5 / page</option>
               <option value={10}>10 / page</option>
               <option value={20}>20 / page</option>
-            </Select>
+            </select>
           </HStack>
         </Flex>
       </Box>
 
       <PaymentDetailModal isOpen={modalOpen} onClose={() => setModalOpen(false)} payment={activePayment} />
+      <MakePaymentModal isOpen={makeModalOpen} onClose={() => setMakeModalOpen(false)} />
     </Box>
   );
 };
