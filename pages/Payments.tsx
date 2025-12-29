@@ -3,9 +3,9 @@ import React, { useMemo, useRef, useState } from 'react';
 import {
   Box, Flex, Text, Button, Input, IconButton, HStack, Image,
   Table, Thead, Tbody, Tr, Th, Td, Checkbox, Badge, Spacer,
-  useToast, Tag, Select, useBreakpointValue, Stack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, useOutsideClick
+  useToast, Tag, Select, useBreakpointValue, Stack, useOutsideClick
 } from '@chakra-ui/react';
-import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Payment = {
   id: string;
@@ -47,30 +47,31 @@ const getMethodIcon = (method: string) => {
 
 const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payment?: Payment | null }> = ({ isOpen, onClose, payment }) => {
   const toast = useToast();
-  if (!payment) return null;
+  if (!payment || !isOpen) return null;
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Payment details — {payment.transactionId}</ModalHeader>
-        <ModalBody>
-          <Stack spacing={3}>
-            <Text><strong>From:</strong> {payment.from}</Text>
-            <Text><strong>Payment for:</strong> {payment.paymentFor}</Text>
-            <Text><strong>Amount:</strong> {payment.amount}</Text>
-            <Text><strong>Method:</strong> <HStack display="inline-flex" spacing={2} align="center"><Image src={getMethodIcon(payment.method)} alt={payment.method} boxSize="16px" objectFit="contain" /><span>{payment.method}</span></HStack></Text>
-            <Text><strong>Date:</strong> {payment.date}</Text>
-            <Text><strong>Status:</strong> {payment.status}</Text>
-          </Stack>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={() => { navigator.clipboard?.writeText(payment.transactionId); toast({ title: 'Copied transaction id', status: 'success' }); }}>
-            Copy ID
-          </Button>
+    <Box position="fixed" inset={0} zIndex={70} display="flex" alignItems="center" justifyContent="center">
+      <Box position="absolute" inset={0} bg="blackAlpha.600" onClick={onClose} />
+      <Box bg="white" p={6} rounded="12px" shadow="lg" zIndex={80} minW={{ base: '90%', md: '640px' }}>
+        <Flex justify="space-between" align="center" mb={4}>
+          <Text fontWeight="bold">Payment details — {payment.transactionId}</Text>
+          <IconButton aria-label="Close" icon={<X size={16} />} variant="ghost" onClick={onClose} />
+        </Flex>
+
+        <Stack spacing={3}>
+          <Text><strong>From:</strong> {payment.from}</Text>
+          <Text><strong>Payment for:</strong> {payment.paymentFor}</Text>
+          <Text><strong>Amount:</strong> {payment.amount}</Text>
+          <Text><strong>Method:</strong> <HStack display="inline-flex" spacing={2} align="center"><Image src={getMethodIcon(payment.method)} alt={payment.method} boxSize="16px" objectFit="contain" /><span>{payment.method}</span></HStack></Text>
+          <Text><strong>Date:</strong> {payment.date}</Text>
+          <Text><strong>Status:</strong> {payment.status}</Text>
+        </Stack>
+
+        <Flex mt={5} justify="flex-end" gap={3}>
+          <Button variant="ghost" onClick={() => { navigator.clipboard?.writeText(payment.transactionId); toast({ title: 'Copied transaction id', status: 'success' }); }}>Copy ID</Button>
           <Button colorScheme="blue" onClick={() => { toast({ title: 'Receipt exported', status: 'success' }); }}>Export receipt</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </Flex>
+      </Box>
+    </Box>
   );
 };
 
@@ -88,8 +89,8 @@ const Payments: React.FC = () => {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  // Modal
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  // Modal (local state; using custom modal implementation)
+  const [modalOpen, setModalOpen] = useState(false);
   const [activePayment, setActivePayment] = useState<Payment | null>(null);
 
   const showTable = useBreakpointValue({ base: false, md: true });
@@ -192,8 +193,8 @@ const Payments: React.FC = () => {
               </Thead>
               <Tbody>
                 {paged.map(p => (
-                  <Tr key={p.id} _hover={{ bg: 'gray.50' }}>
-                    <Td><Checkbox isChecked={!!selected[p.id]} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} /></Td>
+                  <Tr key={p.id} _hover={{ bg: 'gray.50' }} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }} role="button" tabIndex={0}>
+                    <Td><Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} /></Td>
                     <Td fontSize="sm" whiteSpace="nowrap">{p.transactionId}</Td>
                     <Td>{p.from}</Td>
                     <Td>{p.paymentFor}</Td>
@@ -219,9 +220,9 @@ const Payments: React.FC = () => {
           /* Mobile card list */
           <Stack spacing={3}>
             {paged.map(p => (
-              <Box key={p.id} p={3} rounded="12px" border="1px" borderColor="gray.50" _hover={{ bg: 'gray.50' }}>
+              <Box key={p.id} p={3} rounded="12px" border="1px" borderColor="gray.50" _hover={{ bg: 'gray.50' }} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }}>
                 <Flex align="center">
-                  <Checkbox isChecked={!!selected[p.id]} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} mr={3} />
+                  <Checkbox isChecked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: e.target.checked }))} mr={3} />
                   <Box flex={1}>
                     <Text fontSize="sm" fontWeight="bold">{p.paymentFor}</Text>
                     <Text fontSize="xs" color="gray.500">{p.transactionId} • {p.from}</Text>
@@ -263,7 +264,7 @@ const Payments: React.FC = () => {
         </Flex>
       </Box>
 
-      <PaymentDetailModal isOpen={isOpen} onClose={onClose} payment={activePayment} />
+      <PaymentDetailModal isOpen={modalOpen} onClose={() => setModalOpen(false)} payment={activePayment} />
     </Box>
   );
 };
