@@ -80,9 +80,12 @@ const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payme
 
 const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const toast = useToast();
+  const navigate = useNavigate();
   if (!isOpen) return null;
-  const handleChoose = (label: string) => {
-    toast({ title: `${label} selected`, status: 'success' });
+
+  const handleChoose = (type: string, label: string) => {
+    // navigate to payments/new with a query param to indicate the type
+    navigate(`/payments/new?type=${encodeURIComponent(type)}`);
     onClose();
   };
 
@@ -96,13 +99,13 @@ const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
         </Flex>
 
         <Stack spacing={3}>
-          <Button leftIcon={<BookOpen size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Pay for Course Registration')}>
+          <Button leftIcon={<BookOpen size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('registration', 'Pay for Course Registration')}>
             Pay for Course Registration
           </Button>
-          <Button leftIcon={<FileText size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Pay for Transcript')}>
+          <Button leftIcon={<FileText size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('transcript', 'Pay for Transcript')}>
             Pay for Transcript
           </Button>
-          <Button leftIcon={<CreditCard size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('Make Other Payments')}>
+          <Button leftIcon={<CreditCard size={16} />} justifyContent="flex-start" variant="outline" onClick={() => handleChoose('other', 'Make Other Payments')}>
             Make Other Payments
           </Button>
         </Stack>

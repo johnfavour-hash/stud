@@ -18,6 +18,7 @@ import Courses from './pages/Courses';
 import Registration from './pages/Registration';
 import Schedule from './pages/Schedule';
 import Payments from './pages/Payments';
+import PaymentsNew from './pages/PaymentsNew';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { NavigationItem } from './types';
 
@@ -262,6 +263,7 @@ const App: React.FC = () => {
             <Route path="/registration/*" element={<Registration />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/payments" element={<Payments />} />
+            <Route path="/payments/new" element={<PaymentsNew />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
         </Box>
