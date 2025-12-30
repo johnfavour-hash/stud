@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const checkboxClasses = "appearance-none w-4 h-4 bg-white border border-gray-300 rounded checked:bg-blue-600 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer transition-all bg-center bg-no-repeat checked:bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z%22%20clip-rule%3D%22evenodd%22%20%2F%3E%3C%2Fsvg%3E')]";
 
@@ -66,7 +67,9 @@ const TranscriptRegView = () => (
   </div>
 );
 
-const CoursesRegView = () => (
+const CoursesRegView = () => {
+  const navigate = useNavigate();
+  return (
   <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500">
     <div className="grid grid-cols-12 gap-6 lg:gap-8">
       {/* Registration Form */}
@@ -103,7 +106,7 @@ const CoursesRegView = () => (
         </div>
 
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4 border-t border-gray-50">
-          <button className="w-full bg-[#22c55e] text-white py-3 rounded-lg text-[11px] font-bold hover:bg-green-600 transition-colors shadow-sm">Register</button>
+          <button onClick={() => navigate('/payments/new?type=registration')} className="w-full bg-[#22c55e] text-white py-3 rounded-lg text-[11px] font-bold hover:bg-green-600 transition-colors shadow-sm">Register</button>
           <button className="w-full bg-white border border-gray-200 text-[#1e293b] py-3 rounded-lg text-[11px] font-bold hover:bg-gray-50">Cancel</button>
         </div>
       </div>
@@ -190,9 +193,8 @@ const CoursesRegView = () => (
       </div>
     </div>
   </div>
-);
-
-import { useNavigate, useLocation } from 'react-router-dom';
+  );
+};
 
 const Registration: React.FC = () => {
   const navigate = useNavigate();

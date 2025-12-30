@@ -22,13 +22,13 @@ import PaymentsNew from './pages/PaymentsNew';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { NavigationItem } from './types';
 
-const Logo = () => (
-  <Flex align="center" justify="start">
+const Logo = ({ collapsed }: { collapsed?: boolean }) => (
+  <Flex align="center" justify={collapsed ? "center" : "start"} w={collapsed ? "full" : "auto"}>
     <Image 
       src="/assets/logos.png" 
       alt="UniEdu Logo" 
       h={{ base: '10', lg: '12' }}
-      w="auto"
+      w={collapsed ? '10' : 'auto'}
       objectFit="contain"
       maxW="full"
       onError={(e: any) => {
@@ -148,8 +148,26 @@ const App: React.FC = () => {
         transition="transform 0.3s, width 200ms ease"
         overflow="hidden"
       >
-        <Flex p={{ base: 8, lg: 10 }} mb={4} align="center" justify="space-between">
-          <Logo />
+        <Flex 
+          p={{ base: 6, lg: isSidebarCollapsed ? 4 : 8 }} 
+          mb={4} 
+          align="center" 
+          justify={isSidebarCollapsed ? 'center' : 'space-between'} 
+          direction={isSidebarCollapsed ? 'column' : 'row'}
+          gap={isSidebarCollapsed ? 4 : 0}
+        >
+          <Logo collapsed={isSidebarCollapsed} />
+          
+          <IconButton
+            aria-label="Toggle sidebar"
+            icon={<Menu size={20} />}
+            display={{ base: 'none', lg: 'flex' }}
+            variant="ghost"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            color="gray.400"
+            _hover={{ bg: 'gray.100' }}
+          />
+
           <IconButton 
             aria-label="Close menu"
             icon={<X size={24} />}
@@ -188,19 +206,6 @@ const App: React.FC = () => {
           align="center" justify="space-between" px={{ base: 4, lg: 8 }} shrink={0}
         >
           <Flex align="center" gap={{ base: 2, lg: 4 }} flex={1}>
-            {/* Desktop hamburger to collapse sidebar */}
-            <IconButton
-              aria-label="Toggle sidebar"
-              aria-pressed={isSidebarCollapsed}
-              title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              icon={<Menu size={20} />}
-              display={{ base: 'none', lg: 'flex' }}
-              variant="ghost"
-              onClick={() => setIsSidebarCollapsed(s => !s)}
-              color="gray.500"
-              rounded="lg"
-            />
-
             <IconButton 
               aria-label="Open menu"
               icon={<Menu size={24} />}

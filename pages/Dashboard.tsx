@@ -55,7 +55,7 @@ const Dashboard: React.FC = () => {
               
               <div className="mb-6 lg:mb-8">
                 <p className="text-white/90 text-xs lg:text-sm leading-relaxed">
-                  You have pending payments to make.
+                  You have pending <br /> payments to make.
                 </p>
                 <p className="text-white/90 text-xs lg:text-sm leading-relaxed">
                   Let's get it done!
