@@ -1,5 +1,12 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { 
+  Routes, 
+  Route, 
+  Navigate, 
+  useLocation, 
+  useNavigate, 
+  Outlet 
+} from 'react-router-dom';
 import { 
   Home, 
   Book, 
@@ -20,12 +27,11 @@ import Registration from './pages/Registration';
 import Schedule from './pages/Schedule';
 import Payments from './pages/Payments';
 import Login from './pages/Login';
-import { NavigationItem } from './types';
 
-export const UniEduLogo = ({ className = "" }) => (
+export const UniEduLogo = ({ className = "" }: { className?: string }) => (
   <div className={`flex items-center justify-start ${className}`}>
     <img 
-      src="assets/043f81e40416f134c4a2b5c25b25e1ee4078dc94 (1).png" 
+      src="/assets/043f81e40416f134c4a2b5c25b25e1ee4078dc94 (1).png" 
       alt="UniEdu Logo" 
       className="h-10 lg:h-12 w-auto object-contain max-w-full"
       onError={(e) => {
@@ -63,53 +69,19 @@ const SidebarItem = ({
   </div>
 );
 
-const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<NavigationItem>('dashboard');
+const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '') as NavigationItem;
-      const validTabs: NavigationItem[] = ['dashboard', 'courses', 'registration', 'schedule', 'payments', 'settings'];
-      if (validTabs.includes(hash)) {
-        setActiveTab(hash);
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && location.pathname === '/') return true;
+    return location.pathname.startsWith(path);
+  };
 
-  const navigateTo = (tab: NavigationItem) => {
-    window.location.hash = tab;
+  const handleNavigation = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
-  };
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    window.location.hash = 'dashboard';
-  };
-
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
-      case 'courses': return <Courses />;
-      case 'registration': return <Registration />;
-      case 'schedule': return <Schedule />;
-      case 'payments': return <Payments />;
-      default: return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
-          <Settings size={48} className="mb-4 animate-spin-slow" />
-          <h2 className="text-xl font-semibold">Under Maintenance</h2>
-          <p className="text-sm text-center">The {activeTab} section is being updated.</p>
-        </div>
-      );
-    }
   };
 
   return (
@@ -140,12 +112,42 @@ const App: React.FC = () => {
         </div>
 
         <nav className="flex-1 overflow-y-auto custom-scrollbar">
-          <SidebarItem icon={Home} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => navigateTo('dashboard')} />
-          <SidebarItem icon={Book} label="Courses" active={activeTab === 'courses'} onClick={() => navigateTo('courses')} />
-          <SidebarItem icon={Library} label="Registration" active={activeTab === 'registration'} onClick={() => navigateTo('registration')} />
-          <SidebarItem icon={Calendar} label="Schedule" active={activeTab === 'schedule'} onClick={() => navigateTo('schedule')} />
-          <SidebarItem icon={Banknote} label="Payments" active={activeTab === 'payments'} onClick={() => navigateTo('payments')} />
-          <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => navigateTo('settings')} />
+          <SidebarItem 
+            icon={Home} 
+            label="Dashboard" 
+            active={isActive('/dashboard')} 
+            onClick={() => handleNavigation('/dashboard')} 
+          />
+          <SidebarItem 
+            icon={Book} 
+            label="Courses" 
+            active={isActive('/courses')} 
+            onClick={() => handleNavigation('/courses')} 
+          />
+          <SidebarItem 
+            icon={Library} 
+            label="Registration" 
+            active={isActive('/registration')} 
+            onClick={() => handleNavigation('/registration')} 
+          />
+          <SidebarItem 
+            icon={Calendar} 
+            label="Schedule" 
+            active={isActive('/schedule')} 
+            onClick={() => handleNavigation('/schedule')} 
+          />
+          <SidebarItem 
+            icon={Banknote} 
+            label="Payments" 
+            active={isActive('/payments')} 
+            onClick={() => handleNavigation('/payments')} 
+          />
+          <SidebarItem 
+            icon={Settings} 
+            label="Settings" 
+            active={isActive('/settings')} 
+            onClick={() => handleNavigation('/settings')} 
+          />
         </nav>
 
         <div className="p-8 border-t border-gray-50 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
@@ -199,10 +201,58 @@ const App: React.FC = () => {
 
         {/* Scrollable Content Container */}
         <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#f8f9fb]">
-          {renderContent()}
+          <Outlet />
         </main>
       </div>
     </div>
+  );
+};
+
+const ProtectedRoute = ({ isLoggedIn, children }: { isLoggedIn: boolean, children: React.ReactNode }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
+const App: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+
+  const handleLogin = () => {
+    localStorage.setItem('isLoggedIn', 'true');
+    setIsLoggedIn(true);
+  };
+
+  return (
+    <Routes>
+      <Route path="/login" element={
+        isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />
+      } />
+      
+      <Route path="/" element={
+        <ProtectedRoute isLoggedIn={isLoggedIn}>
+          <Layout />
+        </ProtectedRoute>
+      }>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="registration" element={<Registration />} />
+        <Route path="schedule" element={<Schedule />} />
+        <Route path="payments" element={<Payments />} />
+        <Route path="settings" element={
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+            <Settings size={48} className="mb-4 animate-spin-slow" />
+            <h2 className="text-xl font-semibold">Under Maintenance</h2>
+            <p className="text-sm text-center">The Settings section is being updated.</p>
+          </div>
+        } />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 };
 
