@@ -1,478 +1,198 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Box, Flex, Text, Button, Input, IconButton, HStack, Image,
-  Badge, Spacer,
-  useBreakpointValue, Stack
-} from '@chakra-ui/react';
-import { Search, Filter, FileText, Plus, ChevronLeft, ChevronRight, X, BookOpen, CreditCard, CheckCircle2, XCircle, Clock, Download } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-type Payment = {
-  id: string;
-  transactionId: string;
-  from: string;
-  paymentFor: string;
-  amount: string;
-  method: string;
-  date: string;
-  status: 'Succeeded' | 'Pending' | 'Decline';
-};
+import React, { useState } from 'react';
+import { Search, Plus, Filter, Download, X, BookOpen, FileText, HandCoins } from 'lucide-react';
 
-const createSample = (n = 20) => Array.from({ length: n }).map((_, i) => {
-  // Generate a UUID-like string
-  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+const checkboxClasses = "appearance-none w-4 h-4 bg-white border border-gray-300 rounded checked:bg-blue-600 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer transition-all bg-center bg-no-repeat checked:bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z%22%20clip-rule%3D%22evenodd%22%20%2F%3E%3C%2Fsvg%3E')]";
 
-  return {
-    id: String(i + 1),
-    transactionId: uuid,
-    from: 'Grace Hopkins',
-    paymentFor: i % 3 === 0 ? 'Course Registration' : (i % 3 === 1 ? 'School fees' : 'Departmental dues'),
-    amount: i % 3 === 0 ? '₦230,000' : (i % 3 === 1 ? '₦340,000' : '₦45,000'),
-    method: i % 4 === 0 ? 'Bank transfer' : (i % 3 === 0 ? 'Mastercard ****7845' : 'VISA ****7345'),
-    date: `23-08-2025`,
-    status: i % 5 === 0 ? 'Pending' : (i % 4 === 0 ? 'Decline' : 'Succeeded') as Payment['status'],
+const MasterCardIcon = () => (
+  <svg width="24" height="16" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="7" cy="8" r="7" fill="#EB001B" />
+    <circle cx="17" cy="8" r="7" fill="#F79E1B" fillOpacity="0.8" />
+  </svg>
+);
+
+const VisaIcon = () => (
+  <svg width="24" height="16" viewBox="0 0 24 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.64 0.16H9.14L7.58 6.44H10.08L11.64 0.16ZM18.9 0.16L16.48 5.42L15.42 0.16H12.94L14.92 7.84H17.58L20.82 0.16H18.9ZM4.72 0.16L2.3 5.34L1.28 0.16H0L1.76 7.84H4.38L7.4 0.16H4.72ZM21.46 0.16H23.96L21.46 7.84H18.96L21.46 0.16Z" fill="#1A1F71"/>
+  </svg>
+);
+
+const BankIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+    <path d="M3 21h18" />
+    <path d="M3 10h18" />
+    <path d="m5 6 7-3 7 3" />
+    <path d="M4 10v11" />
+    <path d="M20 10v11" />
+    <path d="M8 14v3" />
+    <path d="M12 14v3" />
+    <path d="M16 14v3" />
+  </svg>
+);
+
+const StatusBadge = ({ status }: { status: 'Succeeded' | 'Pending' | 'Decline' }) => {
+  const styles = {
+    Succeeded: 'bg-[#f0fdf4] text-[#22c55e]',
+    Pending: 'bg-[#fef9c3] text-[#a16207]',
+    Decline: 'bg-[#fff1f2] text-[#f43f5e]'
   };
-});
-
-const sampleData = createSample(37);
-
-// Map payment method string -> asset image
-const getMethodIcon = (method: string) => {
-  if (/VISA/i.test(method)) return '/assets/dbe6fcea94b57473b3ac92ebfd373581c53ffdf8 (2).png';
-  if (/Mastercard/i.test(method)) return '/assets/10b571fd0d881b731c970262e0cc1b5bfad7c107 (1).png';
-  if (/Bank/i.test(method) || /transfer/i.test(method)) return '/assets/3b543946b234ab5b1742eccf85f0c75277b92ddd (1).png';
-  return '/assets/3b543946b234ab5b1742eccf85f0c75277b92ddd (1).png';
-};
-
-function useLocalOutsideClick(ref: React.RefObject<HTMLElement>, handler: () => void) {
-  useEffect(() => {
-    const listener = (e: MouseEvent | TouchEvent) => {
-      const el = ref.current;
-      if (!el) return;
-      const target = e.target as Node;
-      if (el.contains(target)) return;
-      handler();
-    };
-    document.addEventListener('mousedown', listener);
-    document.addEventListener('touchstart', listener);
-    return () => {
-      document.removeEventListener('mousedown', listener);
-      document.removeEventListener('touchstart', listener);
-    };
-  }, [ref, handler]);
-}
-
-function showToast({ title, status = 'info' }: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) {
-  if (typeof document === 'undefined') { alert(title); return; }
-  const el = document.createElement('div');
-  el.textContent = title;
-  el.setAttribute('role', 'status');
-  Object.assign(el.style, {
-    position: 'fixed',
-    right: '16px',
-    bottom: '16px',
-    backgroundColor: status === 'success' ? '#16a34a' : status === 'warning' ? '#f59e0b' : status === 'error' ? '#ef4444' : '#111827',
-    color: '#fff',
-    padding: '8px 12px',
-    borderRadius: '8px',
-    zIndex: '9999',
-    fontSize: '13px',
-  } as React.CSSProperties);
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2800);
-} 
-
-const PaymentDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; payment?: Payment | null }> = ({ isOpen, onClose, payment }) => {
-  const toast = (opts: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) => showToast(opts);
-  if (!payment || !isOpen) return null;
+  
   return (
-    <Box position="fixed" inset={0} zIndex={70} display="flex" alignItems="center" justifyContent="center">
-      <Box position="absolute" inset={0} bg="blackAlpha.600" onClick={onClose} />
-      <Box bg="white" p={6} rounded="12px" shadow="lg" zIndex={80} minW={{ base: '90%', md: '640px' }}>
-        <Flex justify="space-between" align="center" mb={4}>
-          <Text fontWeight="bold">Payment details — {payment.transactionId}</Text>
-          <IconButton aria-label="Close" icon={<X size={16} />} variant="ghost" onClick={onClose} />
-        </Flex>
-
-        <Stack spacing={3}>
-          <Text><strong>From:</strong> {payment.from}</Text>
-          <Text><strong>Payment for:</strong> {payment.paymentFor}</Text>
-          <Text><strong>Amount:</strong> {payment.amount}</Text>
-          <Text><strong>Method:</strong> <HStack display="inline-flex" spacing={2} align="center"><Image src={getMethodIcon(payment.method)} alt={payment.method} w="32px" h="auto" objectFit="contain" /><span>{payment.method}</span></HStack></Text>
-          <Text><strong>Date:</strong> {payment.date}</Text>
-          <Text><strong>Status:</strong> {payment.status}</Text>
-        </Stack>
-
-        <Flex mt={5} justify="flex-end" gap={3}>
-          <Button variant="ghost" onClick={() => { navigator.clipboard?.writeText(payment.transactionId); toast({ title: 'Copied transaction id', status: 'success' }); }}>Copy ID</Button>
-          <Button colorScheme="blue" onClick={() => { toast({ title: 'Receipt exported', status: 'success' }); }}>Export receipt</Button>
-        </Flex>
-      </Box>
-    </Box>
+    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center justify-center w-fit ${styles[status]}`}>
+      {status === 'Succeeded' && <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] mr-1.5"></span>}
+      {status === 'Decline' && <span className="w-1.5 h-1.5 rounded-full bg-[#f43f5e] mr-1.5"></span>}
+      {status}
+    </span>
   );
 };
 
-const MakePaymentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-  const navigate = useNavigate();
+const NewPaymentModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
 
-  const handleChoose = (type: string) => {
-    navigate(`/payments/new?type=${encodeURIComponent(type)}`);
-    onClose();
-  };
-
   return (
-    <Box position="fixed" inset={0} zIndex={70} display="flex" alignItems="center" justifyContent="center">
-      <Box position="absolute" inset={0} bg="blackAlpha.700" onClick={onClose} />
-      <Box 
-        bg="white" 
-        p={8} 
-        shadow="2xl" 
-        zIndex={80} 
-        w={{ base: '90%', md: '500px' }} 
-        maxW="95vw"
-        position="relative"
-      >
-        <IconButton 
-          aria-label="Close" 
-          icon={<X size={20} />} 
-          variant="ghost" 
-          onClick={onClose} 
-          position="absolute"
-          top={4}
-          right={4}
-          size="sm"
-        />
-        
-        <Flex justify="center" mb={8} mt={2}>
-          <Text fontWeight="bold" color="#0052EA" fontSize="lg">Make New Payment</Text>
-        </Flex>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-[32px] w-full max-w-lg p-8 lg:p-14 relative shadow-2xl animate-in zoom-in-95 duration-300">
+        <button 
+          onClick={onClose}
+          className="absolute right-8 top-8 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-all"
+        >
+          <X size={24} strokeWidth={2.5} />
+        </button>
 
-        <Stack spacing={4}>
-          <Button 
-            variant="outline" 
-            h="64px" 
-            justifyContent="flex-start" 
-            onClick={() => handleChoose('registration')}
-            bg="#F0F4FF"
-            borderColor="#E0E7FF"
-            borderWidth="1px"
-            _hover={{ bg: '#E0E7FF', borderColor: '#C7D2FE' }}
-            color="gray.600"
-            fontWeight="normal"
-            rounded="8px"
-            display="flex"
-            alignItems="center"
-          >
-             <Box mx="auto" display="flex" alignItems="center" gap={3}>
-                <BookOpen size={20} color="#64748B" />
-                <Text fontSize="md">Pay for Course Registration</Text>
-             </Box>
-          </Button>
+        <div className="text-center mb-12">
+          <h2 className="text-[17px] font-black text-[#3b82f6]">Make New Payment</h2>
+        </div>
 
-          <Button 
-            variant="outline" 
-            h="64px" 
-            justifyContent="flex-start" 
-            onClick={() => handleChoose('transcript')}
-            bg="#F0F4FF"
-            borderColor="#E0E7FF"
-            borderWidth="1px"
-            _hover={{ bg: '#E0E7FF', borderColor: '#C7D2FE' }}
-            color="gray.600"
-            fontWeight="normal"
-            rounded="8px"
-            display="flex"
-            alignItems="center"
-          >
-             <Box mx="auto" display="flex" alignItems="center" gap={3}>
-                <FileText size={20} color="#64748B" />
-                <Text fontSize="md">Pay for Transcript</Text>
-             </Box>
-          </Button>
+        <div className="space-y-4">
+          <button className="w-full flex items-center space-x-6 p-6 rounded-[20px] bg-[#eff3ff] border border-[#e0e7ff] hover:bg-[#e4ebff] transition-all group">
+            <div className="bg-white p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+              <BookOpen size={20} className="text-gray-400" />
+            </div>
+            <span className="text-[14px] font-bold text-gray-400">Pay for Course Registration</span>
+          </button>
 
-          <Button 
-            variant="outline" 
-            h="64px" 
-            justifyContent="flex-start" 
-            onClick={() => handleChoose('other')}
-            bg="#F0F4FF"
-            borderColor="#E0E7FF"
-            borderWidth="1px"
-            _hover={{ bg: '#E0E7FF', borderColor: '#C7D2FE' }}
-            color="gray.600"
-            fontWeight="normal"
-            rounded="8px"
-            display="flex"
-            alignItems="center"
-          >
-             <Box mx="auto" display="flex" alignItems="center" gap={3}>
-                <Box as="span" transform="rotate(-15deg)"><CreditCard size={20} color="#64748B" /></Box>
-                <Text fontSize="md">Make Other Payments</Text>
-             </Box>
-          </Button>
-        </Stack>
-      </Box>
-    </Box>
+          <button className="w-full flex items-center space-x-6 p-6 rounded-[20px] bg-[#eff3ff] border border-[#e0e7ff] hover:bg-[#e4ebff] transition-all group">
+            <div className="bg-white p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+              <FileText size={20} className="text-gray-400" />
+            </div>
+            <span className="text-[14px] font-bold text-gray-400">Pay for Transcript</span>
+          </button>
+
+          <button className="w-full flex items-center space-x-6 p-6 rounded-[20px] bg-[#eff3ff] border border-[#e0e7ff] hover:bg-[#e4ebff] transition-all group">
+            <div className="bg-white p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+              <HandCoins size={20} className="text-gray-400" />
+            </div>
+            <span className="text-[14px] font-bold text-gray-400">Make Other Payments</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
-};
-
-const StatusBadge = ({ status }: { status: string }) => {
-  if (status === 'Succeeded') {
-    return (
-      <Badge colorScheme="green" variant="subtle" borderRadius="full" px={3} py={1} display="flex" alignItems="center" width="fit-content" textTransform="none" fontSize="12px" fontWeight="600">
-        <Box as="span" mr={1.5}><CheckCircle2 size={14} fill="#22c55e" color="white" /></Box> Succeeded
-      </Badge>
-    );
-  }
-  if (status === 'Pending') {
-    return (
-      <Badge colorScheme="yellow" variant="subtle" borderRadius="full" px={3} py={1} display="flex" alignItems="center" width="fit-content" textTransform="none" fontSize="12px" fontWeight="600">
-        <Box as="span" mr={1.5}><Clock size={14} fill="#eab308" color="white" /></Box> Pending
-      </Badge>
-    );
-  }
-  if (status === 'Decline') {
-    return (
-      <Badge colorScheme="red" variant="subtle" borderRadius="full" px={3} py={1} display="flex" alignItems="center" width="fit-content" textTransform="none" fontSize="12px" fontWeight="600">
-        <Box as="span" mr={1.5}><XCircle size={14} fill="#ef4444" color="white" /></Box> Decline
-      </Badge>
-    );
-  }
-  return <Badge>{status}</Badge>;
 };
 
 const Payments: React.FC = () => {
-  const toast = (opts: { title: string; status?: 'info' | 'success' | 'warning' | 'error' }) => showToast(opts);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [methodFilter, setMethodFilter] = useState<string>('all');
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [showFilters, setShowFilters] = useState(false);
-  const filterRef = useRef<HTMLDivElement | null>(null);
-  useLocalOutsideClick(filterRef as React.RefObject<HTMLElement>, () => setShowFilters(false));
-
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activePayment, setActivePayment] = useState<Payment | null>(null);
-  const [makeModalOpen, setMakeModalOpen] = useState(false);
-
-  const showTable = useBreakpointValue({ base: false, md: true });
-
-  const filtered = useMemo(() => {
-    return sampleData.filter(p => {
-      const q = query.trim().toLowerCase();
-      if (q) {
-        const inText = p.from.toLowerCase().includes(q) || p.transactionId.toLowerCase().includes(q) || p.paymentFor.toLowerCase().includes(q);
-        if (!inText) return false;
-      }
-      if (statusFilter !== 'all' && p.status !== statusFilter) return false;
-      if (methodFilter !== 'all' && !p.method.includes(methodFilter)) return false;
-      return true;
-    });
-  }, [query, statusFilter, methodFilter]);
-
-  const total = filtered.length;
-  const pages = Math.max(1, Math.ceil(total / perPage));
-  const start = Math.min((page - 1) * perPage + 1, total || 0);
-  const end = Math.min(page * perPage, total);
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
-
-  const toggleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const newSel: Record<string, boolean> = {};
-      paged.forEach(p => newSel[p.id] = true);
-      setSelected(newSel);
-    } else {
-      setSelected({});
-    }
-  };
-
-  const downloadCSV = () => {
-    if (filtered.length === 0) { toast({ title: 'No rows to export', status: 'warning' }); return; }
-    const header = ['Transaction ID', 'From', 'Payment For', 'Amount', 'Method', 'Date', 'Status'];
-    const rows = filtered.map(r => [r.transactionId, r.from, r.paymentFor, r.amount, r.method, r.date, r.status]);
-    const csv = [header, ...rows].map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'payments.csv'; a.click(); URL.revokeObjectURL(url);
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const transactions = [
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'Course Registration', amount: 'N230,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N230,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'Deptmental dues', amount: 'N45,000', method: 'visa', card: '******7845', date: '23-08-2025', status: 'Pending' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'bank', card: 'Bank transfer', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'Course registration', amount: 'N45,000', method: 'bank', card: 'Bank transfer', date: '23-08-2025', status: 'Decline' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'Departmental dues', amount: 'N45,000', method: 'visa', card: '******7845', date: '23-08-2025', status: 'Decline' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+    { id: '06c1774d-46ad....90ae', from: 'Grace Hopkins', for: 'School fees', amount: 'N340,000', method: 'mastercard', card: '******7845', date: '23-08-2025', status: 'Succeeded' },
+  ];
 
   return (
-    <Box p={{ base: 4, lg: 8 }}>
-      <Flex align="center" mb={6} gap={4}>
-        <Text fontSize={{ base: 'lg', lg: 'xl' }} fontWeight="bold">Payments</Text>
-        <Spacer />
-        <Button bg="#0052EA" color="white" _hover={{ bg: '#0040C0' }} rounded="8px" px={4} py={2} h="40px" onClick={() => setMakeModalOpen(true)}>
-          <Plus size={18} style={{ marginRight: '8px' }} /> Make New Payment
-        </Button>
-      </Flex>
+    <div className="p-4 lg:p-12 max-w-[1600px] mx-auto space-y-10">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-black text-[#1e293b]">Payments</h1>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center space-x-2 bg-[#3b82f6] text-white px-8 py-3.5 rounded-xl text-[13px] font-black shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all"
+        >
+          <Plus size={18} strokeWidth={3} />
+          <span>Make New Payment</span>
+        </button>
+      </div>
 
-      <Box bg="white" p={{ base: 3, lg: 6 }} rounded="16px" border="1px" borderColor="gray.100">
-        <Flex align="center" mb={6} wrap="wrap" gap={3}>
-          <Text fontSize="lg" fontWeight="bold">Recent Payments</Text>
-          <Spacer />
-          
-          <Input 
-            placeholder="Search by name, email or code" 
-            value={query} 
-            onChange={(e) => { setQuery(e.target.value); setPage(1); }} 
-            bg="white" 
-            size="md" 
-            maxW={{ base: '100%', md: '300px' }} 
-            borderRadius="8px"
-            border="1px solid"
-            borderColor="gray.200"
-            _focus={{ borderColor: '#0052EA', boxShadow: 'none' }}
-          />
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+          <h2 className="text-base font-black text-[#1e293b]">Recent Payments</h2>
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-72">
+              <input 
+                type="text" 
+                placeholder="Search by name, email or code" 
+                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-[11px] font-medium text-gray-500 focus:outline-none" 
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+            </div>
+            <button className="flex items-center space-x-2 border border-gray-100 rounded-xl px-5 py-3 text-[11px] font-black text-gray-500 hover:bg-slate-50 transition-colors">
+              <Download size={16} />
+              <span>Export</span>
+            </button>
+            <button className="flex items-center space-x-2 border border-gray-100 rounded-xl px-5 py-3 text-[11px] font-black text-gray-500 hover:bg-slate-50 transition-colors">
+              <Filter size={16} />
+              <span>Filter</span>
+            </button>
+          </div>
+        </div>
 
-          <Button 
-            variant="outline" 
-            size="md" 
-            onClick={downloadCSV}
-            fontWeight="medium"
-            borderRadius="8px"
-            border="1px solid"
-            borderColor="gray.200"
-            color="gray.700"
-            _hover={{ bg: 'gray.50' }}
-            px={4}
-          >
-            <Download size={16} style={{ marginRight: '8px' }} /> Export
-          </Button>
-
-          <Box position="relative" ref={filterRef}>
-            <Button 
-              variant="outline" 
-              size="md" 
-              onClick={() => setShowFilters(s => !s)}
-              fontWeight="medium"
-              borderRadius="8px"
-              border="1px solid"
-              borderColor="gray.200"
-              color="gray.700"
-              _hover={{ bg: 'gray.50' }}
-              px={4}
-            >
-              <Filter size={16} style={{ marginRight: '8px' }} /> Filter
-            </Button>
-            {showFilters && (
-              <Box position="absolute" right={0} mt={2} w="220px" bg="white" border="1px" borderColor="gray.100" rounded="8px" shadow="lg" zIndex={60} p={2}>
-                <Text fontWeight="bold" px={3} py={1} fontSize="sm">Status</Text>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setStatusFilter('all'); setPage(1); setShowFilters(false); }}>All</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setStatusFilter('Succeeded'); setPage(1); setShowFilters(false); }}>Succeeded</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setStatusFilter('Pending'); setPage(1); setShowFilters(false); }}>Pending</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setStatusFilter('Decline'); setPage(1); setShowFilters(false); }}>Decline</Button>
-
-                <Box my={2} borderTop="1px" borderColor="gray.50" />
-                <Text fontWeight="bold" px={3} py={1} fontSize="sm">Method</Text>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setMethodFilter('all'); setPage(1); setShowFilters(false); }}>All</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setMethodFilter('VISA'); setPage(1); setShowFilters(false); }}>VISA</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setMethodFilter('Mastercard'); setPage(1); setShowFilters(false); }}>Mastercard</Button>
-                <Button variant="ghost" justifyContent="flex-start" w="full" size="sm" onClick={() => { setMethodFilter('Bank transfer'); setPage(1); setShowFilters(false); }}>Bank transfer</Button>
-              </Box>
-            )}
-          </Box>
-        </Flex>
-
-        {showTable ? (
-          <Box overflowX="auto">
-            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
-              <thead style={{ backgroundColor: '#F8FAFC' }}>
-                <tr>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', borderRadius: '8px 0 0 8px' }}>
-                    <input type="checkbox" checked={paged.length > 0 && Object.keys(selected).length === paged.length} onChange={(e) => toggleSelectAll((e.target as HTMLInputElement).checked)} style={{ width: 16, height: 16 }} />
-                  </th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Transaction Id</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Payment from</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Payment for</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Amount</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Payment method</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Date</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', borderRadius: '0 8px 8px 0', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>Status</th>
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[1100px]">
+            <thead>
+              <tr className="bg-[#f8fafc] border-b border-gray-100">
+                <th className="px-5 py-4 w-12 text-center rounded-tl-2xl">
+                  <input type="checkbox" className={checkboxClasses} />
+                </th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Transaction Id</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Payment from</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Payment for</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Amount</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Payment method</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight">Date</th>
+                <th className="px-5 py-4 font-black text-gray-400 uppercase text-[10px] tracking-tight rounded-tr-2xl">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {transactions.map((t, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-5 py-5 text-center">
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-5 py-5 font-bold text-gray-400 text-[11px]">{t.id}</td>
+                  <td className="px-5 py-5 font-bold text-gray-500 text-[11px]">{t.from}</td>
+                  <td className="px-5 py-5 font-bold text-gray-500 text-[11px]">{t.for}</td>
+                  <td className="px-5 py-5 font-black text-[#1e293b] text-[11px]">{t.amount}</td>
+                  <td className="px-5 py-5">
+                    <div className="flex items-center space-x-2">
+                      {t.method === 'mastercard' && <MasterCardIcon />}
+                      {t.method === 'visa' && <VisaIcon />}
+                      {t.method === 'bank' && <BankIcon />}
+                      <span className="text-[11px] font-bold text-gray-400">{t.card}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-5 font-bold text-gray-400 text-[11px]">{t.date}</td>
+                  <td className="px-5 py-5">
+                    <StatusBadge status={t.status as any} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {paged.map(p => (
-                  <tr key={p.id} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer', backgroundColor: 'white' }} role="button" tabIndex={0}>
-                    <td style={{ padding: '16px', borderBottom: '1px solid #F1F5F9' }}>
-                      <input type="checkbox" checked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: (e.target as HTMLInputElement).checked }))} style={{ width: 16, height: 16 }} />
-                    </td>
-                    <td style={{ padding: '16px', fontSize: 14, color: '#334155', borderBottom: '1px solid #F1F5F9' }}>
-                      {p.transactionId.substring(0, 8)}...{p.transactionId.substring(p.transactionId.length - 4)}
-                    </td>
-                    <td style={{ padding: '16px', fontSize: 14, color: '#334155', borderBottom: '1px solid #F1F5F9' }}>{p.from}</td>
-                    <td style={{ padding: '16px', fontSize: 14, color: '#334155', borderBottom: '1px solid #F1F5F9' }}>{p.paymentFor}</td>
-                    <td style={{ padding: '16px', fontSize: 14, color: '#334155', fontWeight: 500, borderBottom: '1px solid #F1F5F9' }}>{p.amount}</td>
-                    <td style={{ padding: '16px', borderBottom: '1px solid #F1F5F9' }}>
-                      <HStack spacing={2} align="center">
-                        <Image src={getMethodIcon(p.method)} alt={p.method} w="36px" h="auto" objectFit="contain" />
-                        <Text fontSize="13px" color="#334155">{p.method.replace('Mastercard', '').replace('VISA', '').trim() || p.method}</Text>
-                      </HStack>
-                    </td>
-                    <td style={{ padding: '16px', fontSize: 14, color: '#334155', borderBottom: '1px solid #F1F5F9' }}>{p.date}</td>
-                    <td style={{ padding: '16px', borderBottom: '1px solid #F1F5F9' }}>
-                      <StatusBadge status={p.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Box>
-        ) : (
-          <Stack spacing={3}>
-            {paged.map(p => (
-              <Box key={p.id} p={4} rounded="12px" border="1px" borderColor="gray.100" _hover={{ bg: 'gray.50' }} onClick={() => { setActivePayment(p); setModalOpen(true); }} style={{ cursor: 'pointer' }}>
-                <Flex align="center">
-                  <input type="checkbox" checked={!!selected[p.id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setSelected(s => ({ ...s, [p.id]: (e.target as HTMLInputElement).checked }))} style={{ marginRight: 12, width: 16, height: 16 }} />
-                  <Box flex={1}>
-                    <Text fontSize="sm" fontWeight="bold" mb={1}>{p.paymentFor}</Text>
-                    <Text fontSize="xs" color="gray.500" fontFamily="monospace">{p.transactionId.substring(0, 8)}...</Text>
-                  </Box>
-                  <Box textAlign="right">
-                    <Text fontWeight="bold" mb={1}>{p.amount}</Text>
-                    <StatusBadge status={p.status} />
-                  </Box>
-                </Flex>
-                <Flex mt={3} justify="space-between" align="center">
-                   <HStack spacing={2} align="center">
-                      <Image src={getMethodIcon(p.method)} alt={p.method} w="32px" h="auto" objectFit="contain" />
-                      <Text fontSize="xs" color="gray.600">{p.method}</Text>
-                   </HStack>
-                   <Text fontSize="xs" color="gray.400">{p.date}</Text>
-                </Flex>
-              </Box>
-            ))}
-          </Stack>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        {total === 0 && (
-          <Flex align="center" justify="center" p={8} color="gray.500">No payments found</Flex>
-        )}
-
-        <Flex align="center" justify="space-between" mt={6}>
-          <Text fontSize="sm" color="gray.600">Showing {total === 0 ? 0 : start} - {end} of {total}</Text>
-
-          <HStack spacing={2}>
-            <IconButton aria-label="Prev" size="sm" variant="outline" icon={<ChevronLeft size={16} />} onClick={() => setPage(p => Math.max(1, p - 1))} isDisabled={page === 1} />
-            <IconButton aria-label="Next" size="sm" variant="outline" icon={<ChevronRight size={16} />} onClick={() => setPage(p => Math.min(pages, p + 1))} isDisabled={page === pages} />
-            <select style={{ fontSize: 13, padding: '6px 8px', maxWidth: '100px', borderRadius: 4, borderColor: '#E2E8F0' }} value={perPage} onChange={(e) => { setPerPage(Number((e.target as HTMLSelectElement).value)); setPage(1); }}>
-              <option value={5}>5 / page</option>
-              <option value={10}>10 / page</option>
-              <option value={20}>20 / page</option>
-            </select>
-          </HStack>
-        </Flex>
-      </Box>
-
-      <PaymentDetailModal isOpen={modalOpen} onClose={() => setModalOpen(false)} payment={activePayment} />
-      <MakePaymentModal isOpen={makeModalOpen} onClose={() => setMakeModalOpen(false)} />
-    </Box>
+      <NewPaymentModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+    </div>
   );
 };
 

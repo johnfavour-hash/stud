@@ -1,11 +1,5 @@
-import React from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Box, Flex, Grid, GridItem, Text, Heading, Button, IconButton, Input, Image, NativeSelect, 
-  Table, Checkbox, Badge, 
-  Stack, HStack, VStack, 
-  useBreakpointValue
-} from '@chakra-ui/react';
+
+import React, { useState } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -15,104 +9,151 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { Search, Plus, ChevronLeft, Send, ChevronDown } from 'lucide-react';
+import { Search, Plus, Paperclip, ChevronLeft, Send, ChevronDown } from 'lucide-react';
 
-const TableCheckbox = () => (
-  <Checkbox.Root colorPalette="blue" size="sm">
-    <Checkbox.HiddenInput />
-    <Checkbox.Control rounded="md">
-      <Checkbox.Indicator />
-    </Checkbox.Control>
-  </Checkbox.Root>
-);
+const checkboxClasses = "appearance-none w-4 h-4 bg-white border border-gray-300 rounded checked:bg-blue-600 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer transition-all bg-center bg-no-repeat checked:bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z%22%20clip-rule%3D%22evenodd%22%20%2F%3E%3C%2Fsvg%3E')]";
 
 const performanceData = [
-  { name: 'Yr 1', value: 50 },
-  { name: 'Yr 2', value: 25 },
-  { name: 'Yr 3', value: 72 },
-  { name: 'Yr 4', value: 80 },
-  { name: 'Yr 5', value: 30 },
-  { name: 'Yr 6', value: 70 },
+  { name: 'Year 1', value: 50 },
+  { name: 'Year 2', value: 25 },
+  { name: 'Year 3', value: 72 },
+  { name: 'Year 4', value: 80 },
+  { name: 'Year 5', value: 30 },
+  { name: 'Year 6', value: 70 },
 ];
 
-const CoursesTab = () => (
-  <VStack spacing={{ base: 6, lg: 8 }} w="full" animation="fade-in 0.5s">
-    <Box 
-      bg="white" 
-      rounded={{ base: "24px", lg: "32px" }} 
-      p={{ base: 6, lg: 8 }} 
-      border="1px" 
-      borderColor="gray.100" 
-      shadow="sm"
-      w="full"
-    >
-      <Heading 
-        fontSize={{ base: "md", lg: "lg" }} 
-        fontWeight="bold" 
-        color="slate.800" 
-        mb={{ base: 6, lg: 8 }}
-      >
-        Registered Courses
-      </Heading>
-      <Box overflowX="auto" mx={{ base: -6, lg: 0 }} px={{ base: 6, lg: 0 }}>
-        <Table.Root variant="outline">
-          <Table.Header>
-            <Table.Row borderBottom="1px" borderColor="gray.50">
-              <Table.ColumnHeader px={4} py={3} w="8">
-                <TableCheckbox />
-              </Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Code</Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Course Title</Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Type</Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Unit</Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Lecturer(s)</Table.ColumnHeader>
-              <Table.ColumnHeader px={4} py={3} color="gray.400" fontSize="10px" textTransform="uppercase">Status</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {Array(8).fill(0).map((_, i) => (
-              <Table.Row key={i} _hover={{ bg: 'slate.50' }} transition="background 0.2s" borderBottom="1px" borderColor="gray.50">
-                <Table.Cell px={4} py={4}>
-                  <TableCheckbox />
-                </Table.Cell>
-                <Table.Cell px={4} py={4} fontWeight="bold" color="gray.500" fontSize="11px">CSC201.1</Table.Cell>
-                <Table.Cell px={4} py={4} fontWeight="bold" color="slate.800" fontSize="11px">
-                  {i === 2 ? 'General Studies' : i === 3 ? 'Advanced Calculus' : 'Computer Science Introduction'}
-                </Table.Cell>
-                <Table.Cell px={4} py={4} color="gray.500" fontSize="11px">
-                  {i === 2 ? 'General' : i === 3 ? 'Faculty' : 'Department'}
-                </Table.Cell>
-                <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="11px">
-                  {i === 2 ? '2' : '3'}
-                </Table.Cell>
-                <Table.Cell px={4} py={4} color="gray.500" fontSize="11px" fontWeight="medium">
-                  {i === 2 ? 'Dr. Azubuike Okocha' : 'Dr. Edward Nduka'}
-                </Table.Cell>
-                <Table.Cell px={4} py={4}>
-                  <Badge 
-                    px={3} py={1} 
-                    bg="green.50" 
-                    color="green.500" 
-                    rounded="full" 
-                    fontSize="9px" 
-                    fontWeight="bold" 
-                    textTransform="uppercase" 
-                    letterSpacing="wider"
-                  >
-                    Registered
-                  </Badge>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
-      </Box>
-    </Box>
-  </VStack>
-);
+const CoursesTab = () => {
+  const registeredData = [
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'GES201.1', title: 'General Studies', type: 'General', unit: 2, lecturer: 'Dr. Azubuike Okocha' },
+    { code: 'MTH210.1', title: 'Advanced Calculus', type: 'Faculty', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+    { code: 'CSC201.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka' },
+  ];
+
+  const allCoursesData = [
+    { code: 'CSC101.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Completed', color: 'green' },
+    { code: 'CSC102.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Completed', color: 'green' },
+    { code: 'GES100.1', title: 'Communication in English Language', type: 'General', unit: 2, lecturer: 'Dr. Azubuike Okocha', status: 'Pending Result', color: 'yellow' },
+    { code: 'GES101.1', title: 'Human Philosophy', type: 'General', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Completed', color: 'green' },
+    { code: 'CSC103.1', title: 'Computer Science Introduction', type: 'Department', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Completed', color: 'green' },
+    { code: 'MTH110.1', title: 'Algebra and Trigonometry', type: 'Faculty', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Pending Result', color: 'yellow' },
+    { code: 'MTH120.1', title: 'Calculus', type: 'Faculty', unit: 3, lecturer: 'Dr. Edward Nduka', status: 'Not Registered', color: 'red' },
+  ];
+
+  return (
+    <div className="space-y-6 lg:space-y-10 animate-in fade-in duration-500 pb-10">
+      {/* Registered Courses Section */}
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <h2 className="text-base lg:text-lg font-bold text-[#1e293b] mb-8">Registered Courses</h2>
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="px-4 py-4 w-12 text-center">
+                  <input type="checkbox" className={checkboxClasses} />
+                </th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Type</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Unit</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Lecturer(s)</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50/50">
+              {registeredData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-4 text-center">
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-4 py-4 font-bold text-gray-400 text-[11px]">{row.code}</td>
+                  <td className="px-4 py-4 font-bold text-[#1e293b] text-[11px]">{row.title}</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">{row.type}</td>
+                  <td className="px-4 py-4 text-gray-400 font-bold text-[11px]">{row.unit}</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">{row.lecturer}</td>
+                  <td className="px-4 py-4">
+                    <span className="px-3 py-1 bg-[#f0fdf4] text-[#22c55e] rounded-full text-[9px] font-bold uppercase tracking-wider">Registered</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* All Courses Section */}
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">All Courses</h2>
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <input 
+                type="text" 
+                placeholder="Search by name" 
+                className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-[11px] font-medium text-gray-400 focus:outline-none" 
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <select className="w-full sm:w-auto bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-10 py-2.5 text-gray-500 uppercase appearance-none cursor-pointer">
+                <option>All Courses</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={12} />
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="px-4 py-4 w-12 text-center">
+                  <input type="checkbox" className={checkboxClasses} />
+                </th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Type</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Unit</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Lecturer(s)</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50/50">
+              {allCoursesData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-4 text-center">
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-4 py-4 font-bold text-gray-400 text-[11px]">{row.code}</td>
+                  <td className="px-4 py-4 font-bold text-[#1e293b] text-[11px]">{row.title}</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">{row.type}</td>
+                  <td className="px-4 py-4 text-gray-400 font-bold text-[11px]">{row.unit}</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">{row.lecturer}</td>
+                  <td className="px-4 py-4">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      row.color === 'green' ? 'bg-[#f0fdf4] text-[#22c55e]' : 
+                      row.color === 'yellow' ? 'bg-[#fffbeb] text-[#f59e0b]' : 
+                      'bg-[#fff1f2] text-[#f43f5e]'
+                    }`}>
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ResultsTab = () => {
-  const results = [
+  const resultsData = [
     { code: 'CSC201.1', title: 'Computer Science Introduction', unit: 3, ca: 20, exam: 55, total: 75, grade: 'A', remark: 'Distinction' },
     { code: 'CSC201.1', title: 'Computer Science Introduction', unit: 2, ca: 24, exam: 39, total: 63, grade: 'B', remark: 'Very Good' },
     { code: 'CSC201.1', title: 'Computer Science Introduction', unit: 3, ca: 7, exam: 50, total: 57, grade: 'C', remark: 'Credit' },
@@ -124,559 +165,354 @@ const ResultsTab = () => {
   ];
 
   const getRemarkStyle = (remark: string) => {
-    switch (remark) {
-      case 'Distinction':
-      case 'Very Good':
-        return { bg: 'green.50', color: 'green.500' };
-      case 'Credit':
-      case 'Pass':
-        return { bg: 'blue.50', color: 'blue.500' };
-      case 'Bad':
-      case 'Fail':
-        return { bg: 'red.50', color: 'red.500' };
-      default:
-        return { bg: 'gray.100', color: 'gray.500' };
+    switch(remark) {
+      case 'Distinction': return 'bg-[#f0fdf4] text-[#22c55e]';
+      case 'Very Good': return 'bg-[#ecfdf5] text-[#10b981]';
+      case 'Credit': return 'bg-[#eff6ff] text-[#3b82f6]';
+      case 'Pass': return 'bg-[#f0f9ff] text-[#0ea5e9]';
+      case 'Bad': return 'bg-[#fff7ed] text-[#f97316]';
+      case 'Fail': return 'bg-[#fff1f2] text-[#f43f5e]';
+      default: return 'bg-gray-100 text-gray-500';
     }
   };
 
   return (
-    <VStack spacing={{ base: 6, lg: 8 }} w="full" animation="fade-in 0.5s">
-      <Grid templateColumns="repeat(12, 1fr)" gap={{ base: 6, lg: 8 }} w="full">
-        {/* Chart Section */}
-        <GridItem colSpan={{ base: 12, lg: 7 }}>
-          <Box 
-            bg="white" 
-            rounded={{ base: "24px", lg: "32px" }} 
-            p={{ base: 6, lg: 8 }} 
-            border="1px" 
-            borderColor="gray.100" 
-            shadow="sm"
-          >
-            <Flex justify="space-between" align="center" mb={10}>
-              <Heading fontSize={{ base: "md", lg: "lg" }} fontWeight="bold" color="slate.800">Academic Performance</Heading>
-              <Box position="relative">
-                <NativeSelect.Root size="sm" w="auto">
-                  <NativeSelect.Field 
-                    bg="slate.50" 
-                    borderColor="gray.100" 
-                    fontSize="10px" 
-                    fontWeight="bold" 
-                    rounded="lg" 
-                    textTransform="uppercase"
-                  >
-                    <option>All Time</option>
-                  </NativeSelect.Field>
-                </NativeSelect.Root>
-              </Box>
-            </Flex>
-            <Box h={{ base: "60", lg: "64" }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
-                  <Tooltip cursor={{ stroke: '#f1f5f9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
-                  <Line type="monotone" dataKey="value" stroke="#22c55e" strokeWidth={2} dot={{ r: 0 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Box>
-          </Box>
-        </GridItem>
+    <div className="space-y-6 lg:space-y-10 animate-in fade-in duration-500 pb-10">
+      <div className="grid grid-cols-12 gap-6 lg:gap-10">
+        {/* Performance Chart Card */}
+        <div className="col-span-12 lg:col-span-7 bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex justify-between items-center mb-10">
+            <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">Academic Performance</h2>
+            <div className="relative">
+              <select className="bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-8 py-2 text-gray-400 uppercase appearance-none cursor-pointer">
+                <option>All Time</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+            </div>
+          </div>
+          <div className="h-64 lg:h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={performanceData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} 
+                  dy={10} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} 
+                  domain={[0, 100]} 
+                  ticks={[0, 25, 50, 75, 100]} 
+                />
+                <Tooltip 
+                  cursor={{ stroke: '#f1f5f9' }} 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#22c55e" 
+                  strokeWidth={2} 
+                  dot={{ r: 0 }} 
+                  activeDot={{ r: 4, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        {/* CGPA Section */}
-        <GridItem colSpan={{ base: 12, lg: 5 }}>
-          <Box 
-            bg="white" 
-            rounded={{ base: "24px", lg: "32px" }} 
-            p={{ base: 6, lg: 8 }} 
-            border="1px" 
-            borderColor="gray.100" 
-            shadow="sm" 
-            h="full"
-            display="flex" 
-            flexDirection="column"
-          >
-            <Flex justify="space-between" align="center" mb={{ base: 8, lg: 10 }}>
-              <Heading fontSize={{ base: "md", lg: "lg" }} fontWeight="bold" color="slate.800">CGPA</Heading>
-              <Box position="relative">
-                <NativeSelect.Root size="sm" w="auto">
-                  <NativeSelect.Field 
-                    bg="slate.50" 
-                    borderColor="gray.100" 
-                    fontSize="10px" 
-                    fontWeight="bold" 
-                    rounded="lg" 
-                    textTransform="uppercase"
-                  >
-                    <option>All Time</option>
-                  </NativeSelect.Field>
-                </NativeSelect.Root>
-              </Box>
-            </Flex>
-            <VStack spacing={{ base: 4, lg: 5 }} flex="1" align="stretch">
-              <Flex justify="space-between" fontSize="13px">
-                <Text color="gray.400" fontWeight="bold">Total Courses</Text>
-                <Text fontWeight="bold" color="slate.800">15</Text>
-              </Flex>
-              <Flex justify="space-between" fontSize="13px">
-                <Text color="gray.400" fontWeight="bold">Total Grade Point</Text>
-                <Text fontWeight="bold" color="slate.800">150</Text>
-              </Flex>
-              <Flex justify="space-between" fontSize="13px">
-                <Text color="gray.400" fontWeight="bold">Total Credit Unit</Text>
-                <Text fontWeight="bold" color="slate.800">33</Text>
-              </Flex>
-            </VStack>
-            <Flex 
-              mt={{ base: 8, lg: 10 }} 
-              pt={{ base: 8, lg: 10 }} 
-              borderTop="1px" 
-              borderColor="gray.100" 
-              align="flex-end" 
-              justify="space-between"
-            >
-               <Text color="gray.400" fontWeight="bold" fontSize="13px">Your CGPA</Text>
-               <HStack align="baseline" spacing={1}>
-                 <Text fontSize={{ base: "4xl", lg: "5xl" }} fontWeight="black" color="blue.500">4.5</Text>
-                 <Text fontSize="sm" fontWeight="bold" color="gray.400">/5.0</Text>
-               </HStack>
-            </Flex>
-          </Box>
-        </GridItem>
-      </Grid>
+        {/* CGPA Stats Card */}
+        <div className="col-span-12 lg:col-span-5 bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm flex flex-col overflow-hidden">
+          <div className="flex justify-between items-center mb-10">
+            <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">CGPA</h2>
+            <div className="relative">
+              <select className="bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-8 py-2 text-gray-400 uppercase appearance-none cursor-pointer">
+                <option>All Time</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+            </div>
+          </div>
+          <div className="space-y-6 flex-1">
+            <div className="flex justify-between items-center">
+              <span className="text-[13px] text-gray-400 font-bold">Total Courses</span>
+              <span className="text-[14px] font-bold text-[#1e293b]">15</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[13px] text-gray-400 font-bold">Total Grade Point</span>
+              <span className="text-[14px] font-bold text-[#1e293b]">150</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[13px] text-gray-400 font-bold">Total Credit Unit</span>
+              <span className="text-[14px] font-bold text-[#1e293b]">33</span>
+            </div>
+          </div>
+          <div className="mt-10 pt-10 border-t border-blue-100/50 flex items-center justify-between">
+            <span className="text-gray-400 font-bold text-[13px]">Your CGPA</span>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-5xl font-black text-[#3b82f6]">4.5</span>
+              <span className="text-sm font-bold text-gray-400">/5.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Results Table Section */}
-      <Box 
-        bg="white" 
-        rounded={{ base: "24px", lg: "32px" }} 
-        p={{ base: 6, lg: 8 }} 
-        border="1px" 
-        borderColor="gray.100" 
-        shadow="sm"
-        w="full"
-      >
-        <Flex direction={{ base: "column", sm: "row" }} align={{ sm: "center" }} justify="space-between" mb={8} gap={4}>
-          <Heading fontSize={{ base: "md", lg: "lg" }} fontWeight="bold" color="slate.800">Results</Heading>
-          <Stack direction={{ base: "column", sm: "row" }} align="center" spacing={4} w={{ base: "full", sm: "auto" }}>
-            <Box position="relative" w={{ base: "full", sm: "64" }}>
-              <Box position="absolute" left={3} top="50%" transform="translateY(-50%)" zIndex={2} pointerEvents="none">
-                <Search size={14} color="#CBD5E0" />
-              </Box>
-              <Input 
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+          <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">Results</h2>
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <input 
+                type="text" 
                 placeholder="Search by name" 
-                bg="gray.50" 
-                borderColor="gray.100" 
-                fontSize="11px" 
-                rounded="xl" 
-                pl={10}
-                _focus={{ outline: 'none', borderColor: 'blue.200' }}
+                className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 text-[11px] font-medium text-gray-400 focus:outline-none" 
               />
-            </Box>
-            <Box position="relative" w={{ base: "full", sm: "auto" }}>
-              <NativeSelect.Root w={{ base: "full", sm: "auto" }}>
-                <NativeSelect.Field 
-                  bg="slate.50" 
-                  borderColor="gray.100" 
-                  fontSize="10px" 
-                  fontWeight="bold" 
-                  rounded="lg" 
-                  textTransform="uppercase"
-                >
-                  <option>All Semesters</option>
-                </NativeSelect.Field>
-              </NativeSelect.Root>
-            </Box>
-          </Stack>
-        </Flex>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <select className="w-full sm:w-auto bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-10 py-2.5 text-gray-500 uppercase appearance-none cursor-pointer">
+                <option>All Semesters</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+            </div>
+          </div>
+        </div>
 
-        <Box overflowX="auto" mx={{ base: -6, lg: 0 }} px={{ base: 6, lg: 0 }}>
-          <Table.Root variant="outline" minW="900px">
-            <Table.Header>
-              <Table.Row borderBottom="1px" borderColor="gray.50">
-                <Table.ColumnHeader px={4} py={4} w="12"><TableCheckbox /></Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Code</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Course Title</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Unit</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">CA</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Exam</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Total</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Grade</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="12px">Remark</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {results.map((item, idx) => (
-                <Table.Row key={idx} _hover={{ bg: 'slate.50' }} transition="background 0.2s" borderBottom="1px" borderColor="gray.50">
-                  <Table.Cell px={4} py={4}>
-                    <TableCheckbox />
-                  </Table.Cell>
-                  <Table.Cell px={4} py={4} fontWeight="bold" color="gray.500" fontSize="12px">{item.code}</Table.Cell>
-                  <Table.Cell px={4} py={4} fontWeight="bold" color="gray.500" fontSize="12px">{item.title}</Table.Cell>
-                  <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="12px">{item.unit}</Table.Cell>
-                  <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="12px">{item.ca}</Table.Cell>
-                  <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="12px">{item.exam}</Table.Cell>
-                  <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="12px">{item.total}</Table.Cell>
-                  <Table.Cell px={4} py={4} color="gray.500" fontWeight="bold" fontSize="12px">{item.grade}</Table.Cell>
-                  <Table.Cell px={4} py={4}>
-                    <Badge 
-                      px={3} py={1} 
-                      rounded="full" 
-                      fontSize="10px" 
-                      fontWeight="bold" 
-                      {...getRemarkStyle(item.remark)}
-                    >
-                      {item.remark}
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="px-4 py-4 w-12 text-center">
+                  <input type="checkbox" className={checkboxClasses} />
+                </th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Unit</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">CA</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Exam</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Total</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Grade</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Remark</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50/50">
+              {resultsData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-5 text-center">
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-4 py-5 font-bold text-gray-400 text-[11px]">{row.code}</td>
+                  <td className="px-4 py-5 font-bold text-[#1e293b] text-[11px]">{row.title}</td>
+                  <td className="px-4 py-5 text-gray-400 font-bold text-[11px]">{row.unit}</td>
+                  <td className="px-4 py-5 text-gray-400 font-bold text-[11px]">{row.ca}</td>
+                  <td className="px-4 py-5 text-gray-400 font-bold text-[11px]">{row.exam}</td>
+                  <td className="px-4 py-5 text-gray-400 font-bold text-[11px]">{row.total}</td>
+                  <td className="px-4 py-5 text-gray-400 font-bold text-[11px]">{row.grade}</td>
+                  <td className="px-4 py-5">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getRemarkStyle(row.remark)}`}>
+                      {row.remark}
+                    </span>
+                  </td>
+                </tr>
               ))}
-            </Table.Body>
-          </Table.Root>
-        </Box>
-      </Box>
-    </VStack>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 
 const ApplicationDetail = ({ onBack }: { onBack: () => void }) => (
-  <Box 
-    bg="white" 
-    rounded={{ base: "24px", lg: "32px" }} 
-    border="1px" 
-    borderColor="gray.100" 
-    shadow="sm" 
-    overflow="hidden" 
-    display="flex" 
-    flexDirection="column" 
-    h={{ base: "70vh", lg: "750px" }} 
-    animation="slide-in-from-right 0.3s"
-  >
-    <Flex 
-      px={{ base: 6, lg: 8 }} 
-      py={{ base: 5, lg: 6 }} 
-      borderBottom="1px" 
-      borderColor="gray.50" 
-      align="center" 
-      justify="space-between" 
-      flexShrink={0}
-    >
-      <Flex align="center" gap={{ base: 3, lg: 4 }}>
-        <IconButton 
-          aria-label="Back" 
-          icon={<ChevronLeft size={20} />} 
-          onClick={onBack} 
-          variant="ghost" 
-          rounded="full" 
-          color="gray.400" 
-          _hover={{ bg: "slate.50" }}
-        />
-        <Heading 
-          fontSize={{ base: "14px", lg: "15px" }} 
-          fontWeight="bold" 
-          color="slate.800" 
-          noOfLines={1} 
-          maxW={{ base: "150px", lg: "none" }}
-        >
-          Complaint - CPT011
-        </Heading>
-      </Flex>
-      <HStack spacing={{ base: 2, lg: 3 }}>
-        <Text display={{ base: "none", sm: "inline" }} fontSize="11px" fontWeight="bold" color="gray.400">Status</Text>
-        <Badge 
-          px={3} py={1} 
-          bg="blue.50" 
-          color="blue.500" 
-          rounded="full" 
-          fontSize="9px" 
-          fontWeight="bold" 
-          textTransform="uppercase" 
-          letterSpacing="wider"
-        >
-          Active
-        </Badge>
-      </HStack>
-    </Flex>
+  <div className="bg-white rounded-[24px] lg:rounded-[32px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[70vh] lg:h-[750px] animate-in slide-in-from-right duration-300">
+    <div className="px-6 lg:px-8 py-5 lg:py-6 border-b border-gray-50 flex items-center justify-between shrink-0">
+      <div className="flex items-center space-x-3 lg:space-x-4">
+        <button onClick={onBack} className="p-2 hover:bg-slate-50 rounded-full text-gray-400">
+          <ChevronLeft size={20} />
+        </button>
+        <h2 className="text-[14px] lg:text-[15px] font-bold text-[#1e293b] truncate max-w-[150px] lg:max-w-none">Complaint - CPT011</h2>
+      </div>
+      <div className="flex items-center space-x-2 lg:space-x-3">
+        <span className="hidden sm:inline text-[11px] font-bold text-gray-400">Status</span>
+        <span className="px-3 py-1 bg-[#eff6ff] text-[#3b82f6] rounded-full text-[9px] font-bold uppercase tracking-wider">Active</span>
+      </div>
+    </div>
     
-    <VStack 
-      flex="1" 
-      overflowY="auto" 
-      p={{ base: 4, lg: 8 }} 
-      spacing={{ base: 6, lg: 8 }} 
-      bg="white" 
-      align="stretch"
-      css={{
-        '&::-webkit-scrollbar': { width: '4px' },
-        '&::-webkit-scrollbar-track': { background: 'transparent' },
-        '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '24px' },
-      }}
-    >
-      <Flex direction="column" maxW={{ base: "90%", sm: "85%" }}>
-        <Box 
-          bg="blue.50" 
-          p={{ base: 4, lg: 6 }} 
-          rounded={{ base: "20px", lg: "24px" }} 
-          border="1px" 
-          borderColor="blue.100"
-        >
-          <Text fontSize={{ base: "12px", lg: "13px" }} color="slate.800" lineHeight="relaxed" fontWeight="medium">
+    <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 bg-white custom-scrollbar">
+      <div className="flex flex-col max-w-[90%] sm:max-w-[85%]">
+        <div className="bg-[#eff6ff] p-4 lg:p-6 rounded-[20px] lg:rounded-[24px] border border-[#dbeafe]">
+          <p className="text-[12px] lg:text-[13px] text-[#1e293b] leading-relaxed font-medium">
             I hope this message finds you well. I am writing to kindly notify you that my result for MTH 110.1 is currently missing...
-          </Text>
-        </Box>
-        <Text fontSize="10px" fontWeight="bold" color="gray.300" mt={2} px={1}>9:00 am</Text>
-      </Flex>
+          </p>
+        </div>
+        <span className="text-[10px] font-bold text-gray-300 mt-2 px-1">9:00 am</span>
+      </div>
 
-      <Flex direction="column" maxW={{ base: "90%", sm: "85%" }} alignSelf="flex-start">
-        <Box 
-          bg="white" 
-          p={{ base: 4, lg: 6 }} 
-          rounded={{ base: "20px", lg: "24px" }} 
-          border="1px" 
-          borderColor="gray.100" 
-          shadow="sm"
-        >
-          <Text fontSize={{ base: "12px", lg: "13px" }} color="slate.800" lineHeight="relaxed" fontWeight="medium">
+      <div className="flex flex-col max-w-[90%] sm:max-w-[85%] self-start">
+        <div className="bg-white p-4 lg:p-6 rounded-[20px] lg:rounded-[24px] border border-gray-100 shadow-sm">
+          <p className="text-[12px] lg:text-[13px] text-[#1e293b] leading-relaxed font-medium">
             Thank you for bringing this to my attention. Kindly confirm your full name and matric number...
-          </Text>
-        </Box>
-        <Text fontSize="10px" fontWeight="bold" color="gray.300" mt={2} px={1} textAlign="right">10:00 am</Text>
-      </Flex>
-    </VStack>
+          </p>
+        </div>
+        <span className="text-[10px] font-bold text-gray-300 mt-2 px-1 text-right">10:00 am</span>
+      </div>
+    </div>
 
-    <Box p={{ base: 4, lg: 8 }} bg="white" borderTop="1px" borderColor="gray.50" flexShrink={0}>
-      <Box position="relative">
-        <Input 
-          placeholder="Type text here to follow up on complaint" 
-          bg="slate.50" 
-          borderColor="gray.200" 
-          rounded="2xl" 
-          py={{ base: 4, lg: 5 }} 
-          pl={{ base: 5, lg: 8 }} 
-          pr={{ base: 12, lg: 14 }} 
-          fontSize={{ base: "13px", lg: "sm" }} 
-          fontWeight="medium" 
-          color="slate.800" 
-          _focus={{ outline: "none", borderColor: "blue.300" }}
-          h="auto"
+    <div className="p-4 lg:p-8 bg-white border-t border-gray-50 shrink-0">
+      <div className="relative group">
+        <input 
+          type="text" 
+          placeholder="Type message..." 
+          className="w-full bg-[#f8fafc] border border-gray-200 rounded-2xl py-4 lg:py-5 pl-5 lg:pl-8 pr-12 text-[13px] lg:text-sm font-medium text-[#1e293b] focus:outline-none transition-all"
         />
-        <Box position="absolute" right={4} top="50%" transform="translateY(-50%)" display="flex" alignItems="center">
-          <IconButton
-            aria-label="Send"
-            icon={<Send size={16} />}
-            variant="ghost"
-            bg="blue.500"
-            color="white"
-            _hover={{ bg: "blue.600" }}
-            size="sm"
-            p={2}
-            mr={2}
-          />
-          <Image src="/assets/Paperclip.png" alt="Attach" boxSize="18px" cursor="pointer" />
-        </Box>
-      </Box>
-    </Box>
-  </Box>
+        <div className="absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 flex items-center">
+          <button className="text-gray-400 hover:text-blue-500 p-1">
+            <Paperclip size={20} />
+          </button>
+          <button className="ml-2 bg-[#3b82f6] p-2 rounded-xl text-white">
+            <Send size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
-const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, onSelect: (id: string) => void }) => {
+const ApplicationsListView = ({ onLogNew, onSelect }: { onLogNew: () => void, onSelect: () => void }) => {
   const applications = [
-    { id: '1', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '30m ago', status: 'In Progress', color: 'blue' },
-    { id: '2', code: 'CPT011', subject: 'Result Remark Request', desc: 'I believe my result for MTH110.1 is not my score...', update: '3d ago', status: 'In Progress', color: 'blue' },
-    { id: '3', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '7d ago', status: 'Pending Review', color: 'pink' },
-    { id: '4', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1w ago', status: 'Completed', color: 'green' },
-    { id: '5', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '2mon ago', status: 'Completed', color: 'green' },
-    { id: '6', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Pending Review', color: 'pink' },
-    { id: '7', code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Completed', color: 'green' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '30m ago', status: 'In Progress', color: 'blue' },
+    { code: 'CPT011', subject: 'Result Remark Request', desc: 'I believe my result for MTH110.1 is not my score...', update: '3d ago', status: 'In Progress', color: 'blue' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '7d ago', status: 'Pending Review', color: 'pink' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1w ago', status: 'Completed', color: 'green' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '2mon ago', status: 'Completed', color: 'green' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Pending Review', color: 'pink' },
+    { code: 'CPT011', subject: 'Missing Result Complaint', desc: 'My result for MTH110.1 is missing and i wrote...', update: '1yr ago', status: 'Completed', color: 'green' },
   ];
 
   return (
-    <VStack spacing={{ base: 6, lg: 8 }} w="full" animation="fade-in 0.5s">
-      <Flex justify="flex-end" mb={2} w="full">
-        <Button 
-          leftIcon={<Plus size={18} />} 
-          bg="blue.500" 
-          color="white" 
-          px={6} py={6} 
-          rounded="xl" 
-          fontSize="13px" 
-          fontWeight="bold" 
-          shadow="lg" 
-          _hover={{ bg: "blue.600" }} 
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500">
+      <div className="flex justify-end mb-2">
+        <button 
           onClick={onLogNew}
+          className="flex items-center space-x-2 bg-[#3b82f6] text-white px-6 py-3 rounded-xl text-[13px] font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all"
         >
-          Log New Application
-        </Button>
-      </Flex>
+          <Plus size={18} />
+          <span>Log New Application</span>
+        </button>
+      </div>
 
-      <Box 
-        bg="white" 
-        rounded={{ base: "24px", lg: "32px" }} 
-        p={{ base: 6, lg: 10 }} 
-        border="1px" 
-        borderColor="gray.100" 
-        shadow="sm" 
-        overflow="hidden"
-        w="full"
-      >
-        <Flex direction={{ base: "column", sm: "row" }} align={{ sm: "center" }} justify="space-between" mb={8} gap={4}>
-          <Heading fontSize={{ base: "md", lg: "lg" }} fontWeight="bold" color="slate.800">All Applications</Heading>
-          <Stack direction={{ base: "column", sm: "row" }} align="center" spacing={4} w={{ base: "full", sm: "auto" }}>
-            <Box position="relative" w={{ base: "full", sm: "80" }}>
-              <Box position="absolute" left={3} top="50%" transform="translateY(-50%)" zIndex={2} pointerEvents="none">
-                <Search size={14} color="#CBD5E0" />
-              </Box>
-              <Input 
-                placeholder="Search by subject, code, date" 
-                bg="gray.50" 
-                borderColor="gray.100" 
-                fontSize="11px" 
-                rounded="xl" 
-                pl={10}
-                _focus={{ outline: "none", borderColor: "blue.200" }}
-              />
-            </Box>
-            <Box position="relative" w={{ base: "full", sm: "auto" }}>
-              <NativeSelect.Root w={{ base: "full", sm: "auto" }}>
-                <NativeSelect.Field 
-                  bg="slate.50" 
-                  borderColor="gray.100" 
-                  fontSize="10px" 
-                  fontWeight="bold" 
-                  rounded="lg" 
-                  textTransform="uppercase"
-                >
-                  <option>All Application</option>
-                </NativeSelect.Field>
-              </NativeSelect.Root>
-            </Box>
-          </Stack>
-        </Flex>
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">All Applications</h2>
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-80">
+              <input type="text" placeholder="Search by subject, code, date" className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-[11px] font-medium text-gray-500 focus:outline-none" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <select className="w-full sm:w-auto bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-10 py-2.5 text-gray-500 uppercase appearance-none cursor-pointer">
+                <option>All Application</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={12} />
+            </div>
+          </div>
+        </div>
 
-        <Box overflowX="auto" mx={{ base: -6, lg: 0 }} px={{ base: 6, lg: 0 }}>
-          <Table.Root variant="outline" minW="900px">
-            <Table.Header>
-              <Table.Row borderBottom="1px" borderColor="gray.50">
-                <Table.ColumnHeader px={4} py={4} w="12"><TableCheckbox /></Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.400" textTransform="uppercase" fontSize="10px" letterSpacing="wider">Code</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.400" textTransform="uppercase" fontSize="10px" letterSpacing="wider">Subject</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.400" textTransform="uppercase" fontSize="10px" letterSpacing="wider">Description</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.400" textTransform="uppercase" fontSize="10px" letterSpacing="wider">Last Update</Table.ColumnHeader>
-                <Table.ColumnHeader px={4} py={4} fontWeight="bold" color="gray.400" textTransform="uppercase" fontSize="10px" letterSpacing="wider">Status</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="px-4 py-4 w-12">
+                  <input type="checkbox" className={checkboxClasses} />
+                </th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Subject</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Description</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Last Update</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50/50">
               {applications.map((app, idx) => (
-                <Table.Row 
-                  key={app.id} 
-                  onClick={() => onSelect(app.id)} 
-                  cursor="pointer" 
-                  _hover={{ bg: "slate.50" }} 
-                  transition="background 0.2s"
-                  borderBottom="1px"
-                  borderColor="gray.50"
+                <tr 
+                  key={idx} 
+                  onClick={onSelect}
+                  className="hover:bg-[#f8fafc] transition-colors cursor-pointer group"
                 >
-                  <Table.Cell px={4} py={5} onClick={(e) => e.stopPropagation()}>
-                    <TableCheckbox />
-                  </Table.Cell>
-                  <Table.Cell px={4} py={5} fontWeight="bold" color="gray.500" fontSize="11px">{app.code}</Table.Cell>
-                  <Table.Cell px={4} py={5} fontWeight="bold" color="slate.800" fontSize="11px">{app.subject}</Table.Cell>
-                  <Table.Cell px={4} py={5} color="gray.400" fontSize="11px" fontWeight="medium">
-                    <Text noOfLines={1} maxW="250px">{app.desc}</Text>
-                  </Table.Cell>
-                  <Table.Cell px={4} py={5} color="gray.500" fontWeight="bold" fontSize="11px">{app.update}</Table.Cell>
-                  <Table.Cell px={4} py={5}>
-                    <Badge 
-                      px={4} py={1.5} 
-                      rounded="full" 
-                      fontSize="9px" 
-                      fontWeight="bold" 
-                      textTransform="uppercase" 
-                      letterSpacing="wider"
-                      bg={
-                        app.color === 'blue' ? 'blue.50' : 
-                        app.color === 'green' ? 'green.50' : 
-                        'red.50'
-                      }
-                      color={
-                        app.color === 'blue' ? 'blue.500' : 
-                        app.color === 'green' ? 'green.500' : 
-                        'red.500'
-                      }
-                    >
+                  <td className="px-4 py-5" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-4 py-5 font-bold text-gray-500 text-[11px]">{app.code}</td>
+                  <td className="px-4 py-5 font-bold text-[#1e293b] text-[11px]">{app.subject}</td>
+                  <td className="px-4 py-5 text-gray-400 text-[11px] font-medium truncate max-w-[250px]">{app.desc}</td>
+                  <td className="px-4 py-5 text-gray-500 font-bold text-[11px]">{app.update}</td>
+                  <td className="px-4 py-5">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      app.color === 'blue' ? 'bg-[#eff6ff] text-[#3b82f6]' : 
+                      app.color === 'green' ? 'bg-[#f0fdf4] text-[#22c55e]' : 
+                      'bg-[#fff1f2] text-[#f43f5e]'
+                    }`}>
                       {app.status}
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
+                    </span>
+                  </td>
+                </tr>
               ))}
-            </Table.Body>
-          </Table.Root>
-        </Box>
-      </Box>
-    </VStack>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 
 const Courses: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const activeSubTab = (() => {
-    if (location.pathname.includes('/courses/courses')) return 'courses';
-    if (location.pathname.includes('/courses/applications')) return 'applications';
-    return 'results';
-  })();
+  const [activeSubTab, setActiveSubTab] = useState<'courses' | 'results' | 'applications'>('courses');
+  const [viewingDetail, setViewingDetail] = useState(false);
 
   return (
-    <Box p={{ base: 4, lg: 8 }} maxW="1600px" mx="auto">
-      <VStack spacing={{ base: 6, lg: 8 }} w="full">
-        {/* Sub-Tabs Navigation */}
-        <Flex justify="center" overflowX="auto" mx={-4} px={4} py={2} w="full">
-          <HStack 
-            bg="white" 
-            p={1} 
-            rounded="20px" 
-            border="1px" 
-            borderColor="gray.100" 
-            shadow="sm" 
-            spacing={0}
-          >
-            {(['courses', 'results', 'applications'] as const).map((tab) => (
-              <Button
-                key={tab}
-                onClick={() => navigate(`/courses/${tab}`)}
-                variant="ghost"
-                px={{ base: 6, sm: 12 }}
-                py={6}
-                rounded="2xl"
-                fontSize={{ base: "12px", lg: "sm" }}
-                fontWeight="bold"
-                bg={activeSubTab === tab ? 'blue.500' : 'transparent'}
-                color={activeSubTab === tab ? 'white' : 'gray.400'}
-                _hover={{ 
-                  bg: activeSubTab === tab ? 'blue.600' : 'gray.50',
-                  color: activeSubTab === tab ? 'white' : 'gray.600'
-                }}
-                shadow={activeSubTab === tab ? 'md' : 'none'}
-                transition="all 0.3s"
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Button>
-            ))}
-          </HStack>
-        </Flex>
+    <div className="p-4 lg:p-8 max-w-[1600px] mx-auto space-y-6 lg:space-y-8">
+      {/* Sub-Tabs Navigation */}
+      <div className="flex justify-center overflow-x-auto -mx-4 px-4 py-2">
+        <div className="bg-white p-1 rounded-[20px] border border-gray-100 flex shadow-sm shrink-0">
+          {(['courses', 'results', 'applications'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveSubTab(tab);
+                setViewingDetail(false);
+              }}
+              className={`px-6 sm:px-12 py-3 rounded-2xl text-[12px] lg:text-sm font-bold transition-all duration-300 ${
+                activeSubTab === tab 
+                  ? 'bg-[#3b82f6] text-white shadow-md' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {/* Conditional Rendering based on Sub-Tab and View State */}
-        <Box minH="600px" w="full">
-          <Routes>
-            <Route path="courses" element={<CoursesTab />} />
-            <Route path="results" element={<ResultsTab />} />
-            <Route path="applications" element={<ApplicationsListView onLogNew={() => navigate('applications/new')} onSelect={(id: string) => navigate(`applications/${id}`)} />} />
-            <Route path="applications/new" element={<ApplicationDetail onBack={() => navigate('/courses/applications')} />} />
-            <Route path="applications/:id" element={<ApplicationDetail onBack={() => navigate('/courses/applications')} />} />
-            <Route path="*" element={<ResultsTab />} />
-          </Routes>
-        </Box>
-      </VStack>
-    </Box>
+      {/* Conditional Rendering based on Sub-Tab and View State */}
+      <div className="min-h-[600px]">
+        {activeSubTab === 'courses' && <CoursesTab />}
+        {activeSubTab === 'results' && <ResultsTab />}
+        {activeSubTab === 'applications' && (
+          viewingDetail ? (
+            <ApplicationDetail onBack={() => setViewingDetail(false)} />
+          ) : (
+            <ApplicationsListView 
+              onLogNew={() => setViewingDetail(true)} 
+              onSelect={() => setViewingDetail(true)} 
+            />
+          )
+        )}
+      </div>
+    </div>
   );
 };
 

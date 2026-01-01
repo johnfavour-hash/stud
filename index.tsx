@@ -1,8 +1,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 const rootElement = document.getElementById('root');
@@ -13,10 +11,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ChakraProvider value={defaultSystem}>
-        <App />
-      </ChakraProvider>
-    </BrowserRouter>
+    <App />
   </React.StrictMode>
 );

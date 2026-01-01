@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Box, Flex, Text, Image, Button, Input, 
-  IconButton, VStack, HStack, Tooltip, useBreakpointValue
-} from '@chakra-ui/react';
-import { 
-  Settings,
+  Home, 
+  Book, 
+  Library, 
+  Calendar, 
+  Banknote, 
+  Settings, 
   Search,
   Bell,
   History,
@@ -18,262 +19,190 @@ import Courses from './pages/Courses';
 import Registration from './pages/Registration';
 import Schedule from './pages/Schedule';
 import Payments from './pages/Payments';
-import PaymentsNew from './pages/PaymentsNew';
-import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
 import { NavigationItem } from './types';
 
-const Logo = ({ collapsed }: { collapsed?: boolean }) => (
-  <Flex align="center" justify={collapsed ? "center" : "start"} w={collapsed ? "full" : "auto"}>
-    <Image 
-      src="/assets/logos.png" 
+export const UniEduLogo = ({ className = "" }) => (
+  <div className={`flex items-center justify-start ${className}`}>
+    <img 
+      src="assets/043f81e40416f134c4a2b5c25b25e1ee4078dc94 (1).png" 
       alt="UniEdu Logo" 
-      h={{ base: '10', lg: '12' }}
-      w={collapsed ? '10' : 'auto'}
-      objectFit="contain"
-      maxW="full"
-      onError={(e: any) => {
-        e.target.style.display = 'none';
+      className="h-10 lg:h-12 w-auto object-contain max-w-full"
+      onError={(e) => {
+        e.currentTarget.style.display = 'none';
       }}
     />
-  </Flex>
+  </div>
 );
 
+const Logo = () => <UniEduLogo />;
+
 const SidebarItem = ({ 
-  iconSrc, 
+  icon: Icon, 
   label, 
   active, 
-  onClick,
-  collapsed = false,
+  onClick 
 }: { 
-  iconSrc: string, 
+  icon: any, 
   label: string, 
   active: boolean, 
-  onClick: () => void,
-  collapsed?: boolean,
-}) => {
-  const content = (
-    <Button
+  onClick: () => void 
+}) => (
+  <div className="px-4 py-1.5">
+    <button
       onClick={onClick}
-      variant="ghost"
-      w="full"
-      display="flex"
-      alignItems="center"
-      justifyContent={collapsed ? 'center' : 'flex-start'}
-      gap={collapsed ? 0 : 4}
-      px={collapsed ? 2 : 5}
-      py={collapsed ? 3 : 6}
-      rounded="2xl"
-      bg={active ? '#e8eff7' : 'transparent'}
-      color="#1e293b"
-      fontWeight={active ? 'bold' : 'normal'}
-      _hover={{ bg: active ? '#e8eff7' : 'gray.50' }}
-      role="group"
-      transition="all 0.2s"
-      title={collapsed ? label : undefined}
+      className={`w-full flex items-center space-x-4 px-5 py-3.5 transition-all duration-200 rounded-2xl group ${
+        active 
+          ? 'bg-[#e8eff7] text-[#1e293b] font-bold' 
+          : 'text-[#1e293b] hover:bg-gray-50'
+      }`}
     >
-      <Image 
-        src={iconSrc} 
-        alt={label} 
-        boxSize={collapsed ? '20px' : '22px'} 
-        objectFit="contain" 
-      />
-      <Box as="span" ml={collapsed ? 0 : 3} style={{ transition: 'opacity 0.18s, width 0.18s', opacity: collapsed ? 0 : 1, width: collapsed ? 0 : 'auto', overflow: 'hidden', display: 'inline-block' }}>
-        <Text fontSize="15px" display="inline">{label}</Text>
-      </Box>
-    </Button>
-  );
-
-  return (
-    <Box px={collapsed ? 1 : 4} py={1.5}>
-      {collapsed ? (
-        <Tooltip label={label} placement="right">
-          {content}
-        </Tooltip>
-      ) : content}
-    </Box>
-  );
-};
+      <Icon size={22} className={active ? 'text-[#1e293b]' : 'text-[#1e293b]'} strokeWidth={active ? 2 : 1.5} />
+      <span className="text-[15px]">{label}</span>
+    </button>
+  </div>
+);
 
 const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<NavigationItem>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('sidebarCollapsed') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('sidebarCollapsed', isSidebarCollapsed ? 'true' : 'false');
-    } catch {}
-  }, [isSidebarCollapsed]);
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '') as NavigationItem;
+      const validTabs: NavigationItem[] = ['dashboard', 'courses', 'registration', 'schedule', 'payments', 'settings'];
+      if (validTabs.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const getTabFromPath = (pathname: string): NavigationItem => {
-    if (pathname.startsWith('/courses')) return 'courses';
-    if (pathname.startsWith('/registration')) return 'registration';
-    if (pathname.startsWith('/payments')) return 'payments';
-    if (pathname.startsWith('/schedule')) return 'schedule';
-    if (pathname.startsWith('/settings')) return 'settings';
-    return 'dashboard';
+  const navigateTo = (tab: NavigationItem) => {
+    window.location.hash = tab;
+    setIsMobileMenuOpen(false);
   };
 
-  const activeTab = getTabFromPath(location.pathname);
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    window.location.hash = 'dashboard';
+  };
 
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <Dashboard />;
+      case 'courses': return <Courses />;
+      case 'registration': return <Registration />;
+      case 'schedule': return <Schedule />;
+      case 'payments': return <Payments />;
+      default: return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+          <Settings size={48} className="mb-4 animate-spin-slow" />
+          <h2 className="text-xl font-semibold">Under Maintenance</h2>
+          <p className="text-sm text-center">The {activeTab} section is being updated.</p>
+        </div>
+      );
+    }
+  };
 
   return (
-    <Flex h="100vh" bg="#fcfdfe" overflow="hidden">
+    <div className="flex h-screen bg-[#fcfdfe] overflow-hidden">
       {/* Sidebar Overlay - Mobile */}
       {isMobileMenuOpen && (
-        <Box 
-          pos="fixed" inset={0} bg="blackAlpha.500" zIndex={40} 
-          display={{ base: 'block', lg: 'none' }}
-          backdropFilter="blur(4px)"
-          transition="opacity 0.2s"
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar - Desktop & Mobile Drawer */}
-      <Box
-        as="aside"
-        pos={{ base: 'fixed', lg: 'relative' }}
-        insetY={0} left={0} w={{ base: isSidebarCollapsed ? '20' : '72' }} minW={{ base: isSidebarCollapsed ? '20' : '72' }} bg="white" borderRight="1px" borderColor="gray.100"
-        display="flex" flexDirection="column" zIndex={50}
-        transform={{ base: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)', lg: 'none' }}
-        transition="transform 0.3s, width 200ms ease"
-        overflow="hidden"
-      >
-        <Flex 
-          p={{ base: 6, lg: isSidebarCollapsed ? 4 : 8 }} 
-          mb={4} 
-          align="center" 
-          justify={isSidebarCollapsed ? 'center' : 'space-between'} 
-          direction={isSidebarCollapsed ? 'column' : 'row'}
-          gap={isSidebarCollapsed ? 4 : 0}
-        >
-          <Logo collapsed={isSidebarCollapsed} />
-          
-          <IconButton
-            aria-label="Toggle sidebar"
-            icon={<Menu size={20} />}
-            display={{ base: 'none', lg: 'flex' }}
-            variant="ghost"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            color="gray.400"
-            _hover={{ bg: 'gray.100' }}
-          />
-
-          <IconButton 
-            aria-label="Close menu"
-            icon={<X size={24} />}
-            display={{ base: 'flex', lg: 'none' }}
-            variant="ghost"
+      <aside className={`
+        fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-100 flex flex-col z-50 
+        transition-transform duration-300 transform 
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
+        lg:relative lg:translate-x-0 lg:flex
+      `}>
+        <div className="p-8 lg:p-10 mb-4 flex items-center justify-between">
+          <Logo />
+          <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            rounded="full"
-            color="gray.400"
-            _hover={{ bg: 'gray.100' }}
-          />
-        </Flex>
+            className="lg:hidden p-2 text-gray-400 hover:bg-gray-100 rounded-full"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
-        <Box flex={1} overflowY="auto" css={{
-          '&::-webkit-scrollbar': { width: '4px' },
-          '&::-webkit-scrollbar-track': { background: 'transparent' },
-          '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '2px' },
-        }}>
-          <SidebarItem iconSrc="/assets/House (1).png" label="Dashboard" active={activeTab === 'dashboard'} onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-          <SidebarItem iconSrc="/assets/BookOpen (1).png" label="Courses" active={activeTab === 'courses'} onClick={() => { navigate('/courses/results'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-          <SidebarItem iconSrc="/assets/Books (1).png" label="Registration" active={activeTab === 'registration'} onClick={() => { navigate('/registration'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-          <SidebarItem iconSrc="/assets/CalendarDots (1).png" label="Schedule" active={activeTab === 'schedule'} onClick={() => { navigate('/schedule'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-          <SidebarItem iconSrc="/assets/Money (1).png" label="Payments" active={activeTab === 'payments'} onClick={() => { navigate('/payments'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-          <SidebarItem iconSrc="/assets/305ae6c7f315bb219eb3b785a763838d55d71e73 (1).png" label="Settings" active={activeTab === 'settings'} onClick={() => { navigate('/settings'); setIsMobileMenuOpen(false); }} collapsed={isSidebarCollapsed} />
-        </Box>
+        <nav className="flex-1 overflow-y-auto custom-scrollbar">
+          <SidebarItem icon={Home} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => navigateTo('dashboard')} />
+          <SidebarItem icon={Book} label="Courses" active={activeTab === 'courses'} onClick={() => navigateTo('courses')} />
+          <SidebarItem icon={Library} label="Registration" active={activeTab === 'registration'} onClick={() => navigateTo('registration')} />
+          <SidebarItem icon={Calendar} label="Schedule" active={activeTab === 'schedule'} onClick={() => navigateTo('schedule')} />
+          <SidebarItem icon={Banknote} label="Payments" active={activeTab === 'payments'} onClick={() => navigateTo('payments')} />
+          <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => navigateTo('settings')} />
+        </nav>
 
-        <Box p={8} borderTop="1px" borderColor="gray.50" fontSize="10px" color="gray.400" fontWeight="bold" textTransform="uppercase" letterSpacing="widest">
+        <div className="p-8 border-t border-gray-50 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
           Version 1.0.4
-        </Box>
-      </Box>
+        </div>
+      </aside>
 
       {/* Main Content Area */}
-      <Flex flex={1} direction="column" minW={0} overflow="hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <Flex 
-          h={{ base: 20, lg: 24 }} bg="white" borderBottom="1px" borderColor="gray.50" 
-          align="center" justify="space-between" px={{ base: 4, lg: 8 }} shrink={0}
-        >
-          <Flex align="center" gap={{ base: 2, lg: 4 }} flex={1}>
-            <IconButton 
-              aria-label="Open menu"
-              icon={<Menu size={24} />}
-              display={{ base: 'flex', lg: 'none' }}
-              variant="ghost"
+        <header className="h-20 lg:h-24 bg-white border-b border-gray-50 flex items-center justify-between px-4 lg:px-8 shrink-0">
+          <div className="flex items-center space-x-3 lg:space-x-4 flex-1">
+            <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              color="gray.500"
-              rounded="lg"
-            />
-
-            <Box position="relative" maxW={{ base: '140px', sm: 'xs', lg: 'md' }} w="full">
-              <Input 
+              className="lg:hidden p-2.5 bg-slate-50 text-[#1e293b] hover:bg-slate-100 rounded-xl shrink-0 transition-colors border border-slate-100 shadow-sm"
+              aria-label="Toggle Menu"
+            >
+              <Menu size={26} strokeWidth={2.5} />
+            </button>
+            <div className="relative w-full max-w-[140px] sm:max-w-xs lg:max-w-md">
+              <input 
+                type="text" 
                 placeholder="Search" 
-                bg="white" 
-                borderColor="gray.200" 
-                rounded="full" 
-                py={{ base: 2, lg: 2.5 }}
-                pr={10}
-                fontSize={{ base: 'xs', lg: 'sm' }}
-                color="#1e293b"
-                _focus={{ ring: 1, ringColor: 'blue.100', borderColor: 'blue.100' }}
-                _placeholder={{ color: 'gray.300' }}
+                className="w-full bg-white border border-gray-200 rounded-full py-2 lg:py-2.5 pl-4 pr-10 text-xs lg:text-sm text-[#1e293b] focus:ring-1 focus:ring-blue-100 focus:outline-none placeholder:text-gray-300"
               />
-              <Box position="absolute" right={3} top="50%" transform="translateY(-50%)" color="gray.400" pointerEvents="none">
-                <Search size={16} />
-              </Box>
-            </Box>
-          </Flex>
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            </div>
+          </div>
 
-          <Flex align="center" gap={{ base: 3, lg: 8 }} ml={4} shrink={0}>
-            <HStack spacing={{ base: 3, lg: 4 }} display={{ base: 'none', sm: 'flex' }}>
-              <IconButton aria-label="Notifications" icon={<Bell size={20} />} variant="ghost" color="gray.400" _hover={{ color: 'blue.600' }} size="sm" />
-              <IconButton aria-label="History" icon={<History size={20} />} variant="ghost" color="gray.400" _hover={{ color: 'blue.600' }} size="sm" />
-            </HStack>
+          <div className="flex items-center space-x-3 lg:space-x-8 ml-4 shrink-0">
+            <div className="hidden sm:flex items-center space-x-3 lg:space-x-4">
+              <button className="text-gray-400 hover:text-blue-600 transition-colors p-1">
+                <Bell size={20} />
+              </button>
+              <button className="text-gray-400 hover:text-blue-600 transition-colors p-1">
+                <History size={20} />
+              </button>
+            </div>
             
-            <Flex align="center" gap={{ base: 2, lg: 3 }}>
-              <Flex w={{ base: 8, lg: 10 }} h={{ base: 8, lg: 10 }} rounded="full" bg="#00679A" align="center" justify="center" color="white" shadow="sm" overflow="hidden" shrink={0}>
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#00679A] flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
                 <User size={20} />
-              </Flex>
-              <Flex direction="column">
-                <Text fontSize={{ base: '12px', lg: '13px' }} fontWeight="bold" color="#1e293b" lineHeight="tight" noOfLines={1} maxW={{ base: '80px', lg: 'none' }}>Grace Hopkins</Text>
-                <Text display={{ base: 'none', md: 'block' }} fontSize="10px" color="gray.400" fontWeight="medium" lineHeight="tight">grace@uniedu.com</Text>
-              </Flex>
-            </Flex>
-          </Flex>
-        </Flex>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-[12px] lg:text-[13px] font-bold text-[#1e293b] leading-tight tracking-tight truncate max-w-[80px] lg:max-w-none">Grace Hopkins</p>
+                <p className="hidden md:block text-[10px] text-gray-400 font-medium leading-tight">grace@uniedu.com</p>
+              </div>
+            </div>
+          </div>
+        </header>
 
         {/* Scrollable Content Container */}
-        <Box flex={1} overflowY="auto" bg="#f8f9fb" css={{
-          '&::-webkit-scrollbar': { width: '4px' },
-          '&::-webkit-scrollbar-track': { background: 'transparent' },
-          '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '2px' },
-        }}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/courses" element={<Navigate to="/courses/results" replace />} />
-            <Route path="/courses/*" element={<Courses />} />
-            <Route path="/registration" element={<Navigate to="/registration/courses" replace />} />
-            <Route path="/registration/*" element={<Registration />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/payments/new" element={<PaymentsNew />} />
-            <Route path="*" element={<Dashboard />} />
-          </Routes>
-        </Box>
-      </Flex>
-    </Flex>
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#f8f9fb]">
+          {renderContent()}
+        </main>
+      </div>
+    </div>
   );
 };
 
