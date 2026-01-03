@@ -177,144 +177,356 @@ const TranscriptRegView = () => (
   </div>
 );
 
-const CoursesRegView = ({ onShowPayment }: { onShowPayment: () => void }) => (
-  <div className="space-y-6 lg:space-y-10 animate-in fade-in duration-500">
-    <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-        
-        {/* Registration Form Column */}
-        <div className="space-y-8">
-          <h2 className="text-xl font-bold text-[#1e293b]">Course Registration</h2>
-          
-          <div className="space-y-5">
-            <FormRow label="Current Level">
-              <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
-                <option>200 Level</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-            </FormRow>
+const CoursesRegView = ({ onShowPayment }: { onShowPayment: () => void }) => {
+  // All available courses
+  const allAvailableCourses = [
+    { code: 'CSC101.1', title: 'Computer Science Introduction', unit: 3 },
+    { code: 'CSC102.1', title: 'Programming Fundamentals', unit: 3 },
+    { code: 'CSC103.1', title: 'Data Structures', unit: 3 },
+    { code: 'CSC104.1', title: 'Algorithms', unit: 4 },
+    { code: 'GES100.1', title: 'Communication in English Language', unit: 2 },
+    { code: 'GES101.1', title: 'Human Philosophy', unit: 3 },
+    { code: 'GES102.1', title: 'African History', unit: 2 },
+    { code: 'MTH110.1', title: 'Algebra and Trigonometry', unit: 3 },
+    { code: 'MTH120.1', title: 'Calculus', unit: 4 },
+    { code: 'MTH210.1', title: 'Advanced Calculus', unit: 4 },
+    { code: 'PHY101.1', title: 'Physics I', unit: 3 },
+    { code: 'PHY102.1', title: 'Physics II', unit: 3 },
+    { code: 'CHM101.1', title: 'General Chemistry', unit: 3 },
+    { code: 'BIO101.1', title: 'General Biology', unit: 3 },
+  ];
 
-            <FormRow label="Semester">
-              <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
-                <option>Select Semester</option>
-                <option>First Semester</option>
-                <option>Second Semester</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-            </FormRow>
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedCoursesInDropdown, setSelectedCoursesInDropdown] = useState<string[]>([]);
+  const [previewedCourses, setPreviewedCourses] = useState<typeof allAvailableCourses>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-            <FormRow label="Add Course">
-              <input type="text" placeholder="Search Course Name" className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-[#1e293b] focus:outline-none placeholder:text-gray-300" />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-            </FormRow>
+  const filteredCourses = allAvailableCourses.filter(
+    course => 
+      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-            <FormRow label="Carry Over">
-              <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
-                <option>Yes/No</option>
-                <option>Yes</option>
-                <option>No</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-            </FormRow>
+  const handleSelectCourse = (courseCode: string) => {
+    setSelectedCoursesInDropdown(prev =>
+      prev.includes(courseCode)
+        ? prev.filter(code => code !== courseCode)
+        : [...prev, courseCode]
+    );
+  };
+
+  const handleAddCourses = () => {
+    const coursesToAdd = allAvailableCourses.filter(course =>
+      selectedCoursesInDropdown.includes(course.code) &&
+      !previewedCourses.some(p => p.code === course.code)
+    );
+    
+    setPreviewedCourses(prev => [...prev, ...coursesToAdd]);
+    setSelectedCoursesInDropdown([]);
+    setShowDropdown(false);
+    setSearchQuery('');
+  };
+
+  const handleRemoveCourse = (courseCode: string) => {
+    setPreviewedCourses(prev => prev.filter(course => course.code !== courseCode));
+  };
+
+  const totalUnits = previewedCourses.reduce((sum, course) => sum + course.unit, 0);
+  const totalAmount = totalUnits * 1000; // NGN 1000 per unit
+
+  // Confirmation Modal
+  if (showConfirmation) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="bg-white rounded-[24px] lg:rounded-[32px] w-full max-w-2xl p-6 lg:p-10 shadow-2xl animate-in zoom-in-95 duration-300">
+          <h2 className="text-2xl font-black text-[#1e293b] mb-8">Confirm Course Registration</h2>
+
+          {/* Courses List */}
+          <div className="bg-[#f8fafc] rounded-[20px] p-6 mb-8 max-h-64 overflow-y-auto">
+            <h3 className="text-[14px] font-bold text-[#1e293b] mb-4">Selected Courses ({previewedCourses.length})</h3>
+            <div className="space-y-3">
+              {previewedCourses.map((course) => (
+                <div key={course.code} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                  <div>
+                    <p className="text-[12px] font-bold text-gray-400">{course.code}</p>
+                    <p className="text-[13px] font-bold text-[#1e293b]">{course.title}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[12px] font-bold text-gray-400">{course.unit} units</p>
+                    <p className="text-[13px] font-bold text-[#3b82f6]">NGN {course.unit * 1000}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="flex space-x-3">
-            <button className="bg-[#f1f5f9] text-[#64748b] px-6 py-2.5 rounded-lg text-[11px] font-bold hover:bg-gray-200 transition-colors">Add Course</button>
-            <button className="bg-[#f1f5f9] text-[#64748b] px-6 py-2.5 rounded-lg text-[11px] font-bold hover:bg-gray-200 transition-colors">Remove Course</button>
+          {/* Summary */}
+          <div className="space-y-3 mb-8 pb-8 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <p className="text-[14px] font-bold text-gray-400">Total Units:</p>
+              <p className="text-[14px] font-bold text-[#1e293b]">{totalUnits} units</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-[14px] font-bold text-gray-400">Cost per Unit:</p>
+              <p className="text-[14px] font-bold text-[#1e293b]">NGN 1,000</p>
+            </div>
+            <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
+              <p className="text-[15px] font-black text-[#1e293b]">Total Amount:</p>
+              <p className="text-2xl font-black text-[#3b82f6]">NGN {totalAmount.toLocaleString()}</p>
+            </div>
           </div>
 
-          <div className="flex space-x-4 pt-6">
-            <button 
-              onClick={onShowPayment}
-              className="bg-[#22c55e] text-white px-10 py-3 rounded-lg text-[12px] font-bold hover:bg-green-600 transition-colors shadow-sm"
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setShowConfirmation(false)}
+              className="flex-1 bg-white border border-gray-200 text-[#1e293b] px-6 py-3 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-all"
             >
-              Register Courses
+              Cancel
             </button>
-            <button className="bg-white border border-gray-200 text-[#1e293b] px-10 py-3 rounded-lg text-[12px] font-bold hover:bg-gray-50 transition-all min-w-[120px]">Cancel</button>
-          </div>
-        </div>
-
-        {/* Previewer Column */}
-        <div className="bg-[#fcfdfe] rounded-[24px] p-6 lg:p-8 border border-gray-100 flex flex-col min-h-[400px]">
-          <h2 className="text-sm lg:text-base font-bold text-[#1e293b] mb-8">Courses Previewer</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-50">
-                  <th className="px-3 py-3 w-8">
-                    <input type="checkbox" className={checkboxClasses} />
-                  </th>
-                  <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
-                  <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
-                  <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider text-right">Unit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[...Array(8)].map((_, i) => (
-                  <tr key={i} className="hover:bg-white transition-colors">
-                    <td className="px-3 py-3.5">
-                      <input type="checkbox" className={checkboxClasses} />
-                    </td>
-                    <td className="px-3 py-3.5 font-bold text-gray-400 text-[11px]">CSC201.1</td>
-                    <td className="px-3 py-3.5 font-bold text-[#1e293b] text-[11px] truncate max-w-[180px]">Computer Science Introduction</td>
-                    <td className="px-3 py-3.5 font-bold text-gray-400 text-[11px] text-right">3</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <button
+              onClick={() => {
+                setShowConfirmation(false);
+                onShowPayment();
+              }}
+              className="flex-1 bg-[#22c55e] text-white px-6 py-3 rounded-lg text-[13px] font-bold hover:bg-green-600 transition-all shadow-md"
+            >
+              Confirm & Proceed to Payment
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    );
+  }
 
-    {/* Registered Courses Table Section */}
-    <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-        <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">Registered Courses</h2>
-        <div className="relative w-full sm:w-auto">
-          <select className="w-full sm:w-auto bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-10 py-2.5 text-gray-400 uppercase appearance-none cursor-pointer">
-            <option>This Session</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+  return (
+    <div className="space-y-6 lg:space-y-10 animate-in fade-in duration-500">
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+          
+          {/* Registration Form Column */}
+          <div className="space-y-8">
+            <h2 className="text-xl font-bold text-[#1e293b]">Course Registration</h2>
+            
+            <div className="space-y-5">
+              <FormRow label="Current Level">
+                <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
+                  <option>200 Level</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+              </FormRow>
+
+              <FormRow label="Semester">
+                <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
+                  <option>Select Semester</option>
+                  <option>First Semester</option>
+                  <option>Second Semester</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+              </FormRow>
+
+              <FormRow label="Add Course">
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Search Course Name or Code" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onClick={() => setShowDropdown(true)}
+                    className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-[#1e293b] focus:outline-none placeholder:text-gray-300 cursor-pointer" 
+                  />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={14} />
+                  
+                  {/* Dropdown Menu */}
+                  {showDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-lg z-40 max-h-64 overflow-y-auto">
+                      {filteredCourses.length > 0 ? (
+                        <div className="p-2">
+                          {filteredCourses.map(course => (
+                            <label key={course.code} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                              <input 
+                                type="checkbox" 
+                                className={checkboxClasses}
+                                checked={selectedCoursesInDropdown.includes(course.code)}
+                                onChange={() => handleSelectCourse(course.code)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="ml-3 flex-1">
+                                <p className="text-[12px] font-bold text-[#1e293b]">{course.code}</p>
+                                <p className="text-[11px] text-gray-400 truncate">{course.title}</p>
+                              </div>
+                              <span className="text-[11px] font-bold text-gray-400 ml-2">{course.unit} units</span>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-gray-400 text-[12px]">No courses found</div>
+                      )}
+                      
+                      {filteredCourses.length > 0 && (
+                        <div className="border-t border-gray-100 p-3 flex justify-end gap-2 bg-gray-50">
+                          <button 
+                            onClick={() => {
+                              setShowDropdown(false);
+                              setSelectedCoursesInDropdown([]);
+                              setSearchQuery('');
+                            }}
+                            className="px-4 py-1.5 text-[11px] font-bold text-gray-400 hover:bg-gray-200 rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            onClick={handleAddCourses}
+                            disabled={selectedCoursesInDropdown.length === 0}
+                            className="px-4 py-1.5 text-[11px] font-bold text-white bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 rounded-lg transition-colors"
+                          >
+                            Add Selected
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Overlay to close dropdown */}
+                  {showDropdown && (
+                    <div 
+                      className="fixed inset-0 z-30"
+                      onClick={() => setShowDropdown(false)}
+                    />
+                  )}
+                </div>
+              </FormRow>
+
+              <FormRow label="Carry Over">
+                <select className="w-full bg-[#f8fafc] border border-gray-100 rounded-xl py-2.5 px-4 text-[13px] font-bold text-gray-400 appearance-none focus:outline-none">
+                  <option>Yes/No</option>
+                  <option>Yes</option>
+                  <option>No</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+              </FormRow>
+            </div>
+
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setShowDropdown(true)}
+                className="bg-[#3b82f6] text-white px-6 py-2.5 rounded-lg text-[11px] font-bold hover:bg-blue-700 transition-colors"
+              >
+                Confirm Courses
+              </button>
+              <button 
+                onClick={() => setPreviewedCourses([])}
+                className="bg-[#f1f5f9] text-[#64748b] px-6 py-2.5 rounded-lg text-[11px] font-bold hover:bg-gray-200 transition-colors"
+              >
+                Remove All
+              </button>
+            </div>
+
+            <div className="flex space-x-4 pt-6">
+              <button 
+                onClick={() => setShowConfirmation(true)}
+                disabled={previewedCourses.length === 0}
+                className="bg-[#22c55e] text-white px-10 py-3 rounded-lg text-[12px] font-bold hover:bg-green-600 disabled:bg-gray-300 transition-colors shadow-sm"
+              >
+                Register Courses
+              </button>
+              <button className="bg-white border border-gray-200 text-[#1e293b] px-10 py-3 rounded-lg text-[12px] font-bold hover:bg-gray-50 transition-all min-w-[120px]">Cancel</button>
+            </div>
+          </div>
+
+          {/* Previewer Column */}
+          <div className="bg-[#fcfdfe] rounded-[24px] p-6 lg:p-8 border border-gray-100 flex flex-col min-h-[400px]">
+            <h2 className="text-sm lg:text-base font-bold text-[#1e293b] mb-2">Courses Previewer</h2>
+            <p className="text-[12px] text-gray-400 mb-6">{previewedCourses.length} course(s) selected</p>
+            <div className="overflow-x-auto flex-1">
+              {previewedCourses.length > 0 ? (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-50">
+                      <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                      <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
+                      <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider text-right">Unit</th>
+                      <th className="px-3 py-3 font-bold text-gray-400 uppercase text-[10px] tracking-wider text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {previewedCourses.map((course) => (
+                      <tr key={course.code} className="hover:bg-white transition-colors">
+                        <td className="px-3 py-3.5 font-bold text-gray-400 text-[11px]">{course.code}</td>
+                        <td className="px-3 py-3.5 font-bold text-[#1e293b] text-[11px] truncate max-w-[180px]">{course.title}</td>
+                        <td className="px-3 py-3.5 font-bold text-gray-400 text-[11px] text-right">{course.unit}</td>
+                        <td className="px-3 py-3.5 text-center">
+                          <button 
+                            onClick={() => handleRemoveCourse(course.code)}
+                            className="text-[10px] font-bold text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-300 text-[12px] font-bold">
+                  Select courses to preview
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
-        <table className="w-full text-left min-w-[900px]">
-          <thead>
-            <tr className="border-b border-gray-50">
-              <th className="px-4 py-4 w-12 text-center">
-                <input type="checkbox" className={checkboxClasses} />
-              </th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Type</th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Unit</th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Lecturer(s)</th>
-              <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50/50">
-            {[...Array(7)].map((_, i) => (
-              <tr key={i} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-4 text-center">
+
+      {/* Registered Courses Table Section */}
+      <div className="bg-white rounded-[24px] lg:rounded-[32px] p-6 lg:p-10 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <h2 className="text-base lg:text-lg font-bold text-[#1e293b]">Registered Courses</h2>
+          <div className="relative w-full sm:w-auto">
+            <select className="w-full sm:w-auto bg-[#f8fafc] border border-gray-100 text-[10px] font-bold rounded-lg pl-3 pr-10 py-2.5 text-gray-400 uppercase appearance-none cursor-pointer">
+              <option>This Session</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+          </div>
+        </div>
+        <div className="overflow-x-auto -mx-6 lg:mx-0 px-6 lg:px-0">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="px-4 py-4 w-12 text-center">
                   <input type="checkbox" className={checkboxClasses} />
-                </td>
-                <td className="px-4 py-4 font-bold text-gray-400 text-[11px]">CSC201.1</td>
-                <td className="px-4 py-4 font-bold text-[#1e293b] text-[11px]">Computer Science Introduction</td>
-                <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">Department</td>
-                <td className="px-4 py-4 text-gray-400 font-bold text-[11px]">3</td>
-                <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">Dr. Edward Nduka</td>
-                <td className="px-4 py-4">
-                  <span className="px-3 py-1 bg-[#f0fdf4] text-[#22c55e] rounded-full text-[9px] font-bold uppercase tracking-wider">Registered</span>
-                </td>
+                </th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Code</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Title</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Type</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Unit</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Course Lecturer(s)</th>
+                <th className="px-4 py-4 font-bold text-gray-400 uppercase text-[10px] tracking-wider">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-50/50">
+              {[...Array(7)].map((_, i) => (
+                <tr key={i} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-4 text-center">
+                    <input type="checkbox" className={checkboxClasses} />
+                  </td>
+                  <td className="px-4 py-4 font-bold text-gray-400 text-[11px]">CSC201.1</td>
+                  <td className="px-4 py-4 font-bold text-[#1e293b] text-[11px]">Computer Science Introduction</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">Department</td>
+                  <td className="px-4 py-4 text-gray-400 font-bold text-[11px]">3</td>
+                  <td className="px-4 py-4 text-gray-400 font-medium text-[11px]">Dr. Edward Nduka</td>
+                  <td className="px-4 py-4">
+                    <span className="px-3 py-1 bg-[#f0fdf4] text-[#22c55e] rounded-full text-[9px] font-bold uppercase tracking-wider">Registered</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Registration: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'courses' | 'transcript' | 'other'>('courses');

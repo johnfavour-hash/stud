@@ -19,7 +19,9 @@ import {
   History,
   Menu,
   X,
-  User
+  User,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
@@ -27,16 +29,16 @@ import Registration from './pages/Registration';
 import Schedule from './pages/Schedule';
 import Payments from './pages/Payments';
 import Login from './pages/Login';
+import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
 
 export const UniEduLogo = ({ className = "" }: { className?: string }) => (
-  <div className={`flex items-center justify-start ${className}`}>
+  <div className={`flex items-center justify-center w-full ${className}`}>
     <img 
-      src="/assets/043f81e40416f134c4a2b5c25b25e1ee4078dc94 (1).png" 
+      src="/assets/logos.png" 
       alt="UniEdu Logo" 
-      className="h-10 lg:h-12 w-auto object-contain max-w-full"
-      onError={(e) => {
-        e.currentTarget.style.display = 'none';
-      }}
+      className="h-20 w-auto object-contain max-w-[90%]"
+      style={{ maxHeight: '80px' }}
     />
   </div>
 );
@@ -69,10 +71,14 @@ const SidebarItem = ({
   </div>
 );
 
-const Layout = () => {
+const Layout = ({ onLogout }: { onLogout: () => void }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    onLogout();
+  };
 
   const isActive = (path: string) => {
     if (path === '/dashboard' && location.pathname === '/') return true;
@@ -86,32 +92,17 @@ const Layout = () => {
 
   return (
     <div className="flex h-screen bg-[#fcfdfe] overflow-hidden">
-      {/* Sidebar Overlay - Mobile */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar - Desktop & Mobile Drawer */}
-      <aside className={`
-        fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-100 flex flex-col z-50 
-        transition-transform duration-300 transform 
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-        lg:relative lg:translate-x-0 lg:flex
-      `}>
-        <div className="p-8 lg:p-10 mb-4 flex items-center justify-between">
-          <Logo />
-          <button 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-2 text-gray-400 hover:bg-gray-100 rounded-full"
-          >
-            <X size={24} />
-          </button>
+      {/* Sidebar - Static */}
+      <aside className="hidden lg:flex lg:flex-col w-72 bg-white border-r border-gray-100 shrink-0">
+        <div className="flex items-center justify-center p-3 lg:p-4 border-b border-gray-100 shrink-0">
+          <img 
+            src="/assets/logos.png" 
+            alt="Logo" 
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
-        <nav className="flex-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto custom-scrollbar px-3 lg:px-4 py-2 lg:py-3 space-y-1">
           <SidebarItem 
             icon={Home} 
             label="Dashboard" 
@@ -150,23 +141,25 @@ const Layout = () => {
           />
         </nav>
 
-        <div className="p-8 border-t border-gray-50 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-          Version 1.0.4
+        <div className="border-t border-gray-100 p-3 lg:p-4 space-y-2 shrink-0">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-4 py-2 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+          >
+            <LogOut size={18} strokeWidth={2} />
+            <span>Logout</span>
+          </button>
+          <div className="text-center text-[9px] text-gray-400 font-bold uppercase tracking-widest py-1">
+            V 1.0.4
+          </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-20 lg:h-24 bg-white border-b border-gray-50 flex items-center justify-between px-4 lg:px-8 shrink-0">
+        <header className="h-16 lg:h-20 bg-white border-b border-gray-50 flex items-center justify-between px-4 lg:px-8 shrink-0">
           <div className="flex items-center space-x-3 lg:space-x-4 flex-1">
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2.5 bg-slate-50 text-[#1e293b] hover:bg-slate-100 rounded-xl shrink-0 transition-colors border border-slate-100 shadow-sm"
-              aria-label="Toggle Menu"
-            >
-              <Menu size={26} strokeWidth={2.5} />
-            </button>
             <div className="relative w-full max-w-[140px] sm:max-w-xs lg:max-w-md">
               <input 
                 type="text" 
@@ -179,8 +172,12 @@ const Layout = () => {
 
           <div className="flex items-center space-x-3 lg:space-x-8 ml-4 shrink-0">
             <div className="hidden sm:flex items-center space-x-3 lg:space-x-4">
-              <button className="text-gray-400 hover:text-blue-600 transition-colors p-1">
+              <button 
+                onClick={() => navigate('/notifications')}
+                className="text-gray-400 hover:text-blue-600 transition-colors p-1 relative group"
+              >
                 <Bell size={20} />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full group-hover:scale-110 transition-transform"></span>
               </button>
               <button className="text-gray-400 hover:text-blue-600 transition-colors p-1">
                 <History size={20} />
@@ -188,9 +185,12 @@ const Layout = () => {
             </div>
             
             <div className="flex items-center space-x-2 lg:space-x-3">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#00679A] flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
+              <button 
+                onClick={() => navigate('/profile')}
+                className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#00679A] flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0 hover:bg-[#004d7a] transition-colors"
+              >
                 <User size={20} />
-              </div>
+              </button>
               <div className="flex flex-col">
                 <p className="text-[12px] lg:text-[13px] font-bold text-[#1e293b] leading-tight tracking-tight truncate max-w-[80px] lg:max-w-none">Grace Hopkins</p>
                 <p className="hidden md:block text-[10px] text-gray-400 font-medium leading-tight">grace@uniedu.com</p>
@@ -225,6 +225,11 @@ const App: React.FC = () => {
     setIsLoggedIn(true);
   };
 
+  const handleLogout = () => {
+    localStorage.setItem('isLoggedIn', 'false');
+    setIsLoggedIn(false);
+  };
+
   return (
     <Routes>
       <Route path="/login" element={
@@ -233,7 +238,7 @@ const App: React.FC = () => {
       
       <Route path="/" element={
         <ProtectedRoute isLoggedIn={isLoggedIn}>
-          <Layout />
+          <Layout onLogout={handleLogout} />
         </ProtectedRoute>
       }>
         <Route index element={<Navigate to="/dashboard" replace />} />
@@ -242,6 +247,8 @@ const App: React.FC = () => {
         <Route path="registration" element={<Registration />} />
         <Route path="schedule" element={<Schedule />} />
         <Route path="payments" element={<Payments />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="settings" element={
           <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
             <Settings size={48} className="mb-4 animate-spin-slow" />
